@@ -1,0 +1,19 @@
+# Editors
+.idea/
+
+# CMake / Build
+cmake-build-*/
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+*.cmake
+*.ninja
+compile_commands.json
+build/
+target/
+
+# Binaries
+*.exe
+*.o
+*.obj
