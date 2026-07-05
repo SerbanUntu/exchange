@@ -14,11 +14,11 @@ namespace exchange::client
 {
 int main() noexcept
 {
+    std::shared_ptr<spdlog::logger> LOG = nullptr;
     try
     {
-
         constexpr int NUMBER_OF_REQUESTS = 1000;
-        const auto LOG = common::util::LogService::getLogger(common::util::LogProducer::CLIENT);
+        LOG = common::util::LogService::getLogger(common::util::LogProducer::CLIENT);
         LOG->info("Starting the exchange client.");
 
         const auto channel = grpc::CreateChannel("localhost:8989", grpc::InsecureChannelCredentials());
@@ -46,8 +46,14 @@ int main() noexcept
         }
         return 0;
     }
-    catch (std::exception &)
+    catch (const std::exception &err)
     {
+        common::util::reportException(LOG, err);
+        return 1;
+    }
+    catch (...)
+    {
+        common::util::reportUnknownException(LOG);
         return 1;
     }
 }

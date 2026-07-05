@@ -5,6 +5,7 @@
 
 namespace exchange::common::util
 {
+
 /**
  * The components where logs can come from.
  */
@@ -30,4 +31,21 @@ class LogService
      */
     static std::shared_ptr<spdlog::logger> getLogger(LogProducer producer);
 };
+
+/**
+ * Tries to log that an exception occurred.
+ * Falls back to writing to stderr manually if the logger itself fails.
+ *
+ * @param logger The logger to attempt to write to.
+ * @param err The exception to log.
+ */
+void reportException(const std::shared_ptr<spdlog::logger> &logger, const std::exception &err) noexcept;
+
+/**
+ * Tries to log that an unknown exception occurred.
+ * Falls back to writing to stderr manually if the logger itself fails.
+ *
+ * @param logger The logger to attempt to write to.
+ */
+void reportUnknownException(const std::shared_ptr<spdlog::logger> &logger) noexcept;
 } // namespace exchange::common::util

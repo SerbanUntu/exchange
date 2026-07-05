@@ -24,9 +24,10 @@ class OrderServiceImpl final : public OrderService::Service
 
 int main() noexcept
 {
+    std::shared_ptr<spdlog::logger> LOG = nullptr;
     try
     {
-        const auto LOG = common::util::LogService::getLogger(common::util::LogProducer::ORDER_MANAGER);
+        LOG = common::util::LogService::getLogger(common::util::LogProducer::ORDER_MANAGER);
         LOG->info("Starting the exchange server.");
 
         const std::string address = "0.0.0.0:8989";
@@ -41,8 +42,14 @@ int main() noexcept
         server->Wait();
         return 0;
     }
-    catch (std::exception &)
+    catch (const std::exception &err)
     {
+        common::util::reportException(LOG, err);
+        return 1;
+    }
+    catch (...)
+    {
+        common::util::reportUnknownException(LOG);
         return 1;
     }
 }
