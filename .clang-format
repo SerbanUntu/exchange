@@ -1,0 +1,4 @@
+---
+BasedOnStyle: Microsoft # Allman braces, 4 spaces
+ColumnLimit: 120
+SortIncludes: false
