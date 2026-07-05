@@ -1,0 +1,61 @@
+name: build
+
+on: [ push, pull_request ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install clang linter and formatter
+        run: sudo apt-get update && sudo apt-get install -y clang-format clang-tidy
+
+      - name: Check formatting
+        run: |
+          find client common server -type f \( -name '*.cpp' -o -name '*.h' -o -name '*.hpp' \) -print0 \
+            | xargs -0 --no-run-if-empty clang-format --dry-run --Werror
+
+      - name: Install Conan
+        run: pip install conan
+
+      - name: Upgrade CMake
+        run: pip install --upgrade cmake
+
+      - name: Detect profile
+        run: conan profile detect --force
+
+      - name: Audit dependencies
+        continue-on-error: true
+        env:
+          CONAN_AUDIT_TOKEN: ${{ secrets.CONAN_AUDIT_TOKEN }}
+        run: |
+          conan audit provider auth conancenter --token="$CONAN_AUDIT_TOKEN"
+          conan audit scan .
+
+      - name: Cache Conan packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.conan2/p
+          key: conan-linux-gcc-${{ hashFiles('**/conanfile.txt') }}
+          restore-keys: |
+            conan-linux-gcc-
+
+      - name: Install dependencies
+        run: conan install . --build=missing --output-folder=cmake-build-release
+
+      - name: Configure
+        run: cmake --preset conan-release
+
+      - name: Build
+        run: cmake --build --preset conan-release
+
+      - name: Lint
+        run: |
+          find client common server -type f \( -name '*.cpp' -o -name '*.h' -o -name '*.hpp' \) -not -path '*/test/*' -print0 \
+            | xargs -0 --no-run-if-empty clang-tidy -p cmake-build-release/build/Release
+
+      - name: Test
+        run: ctest --test-dir cmake-build-release/build/Release --output-on-failure

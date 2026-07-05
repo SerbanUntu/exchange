@@ -12,6 +12,8 @@ Makefile
 compile_commands.json
 build/
 target/
+conan_provider.cmake
+docs/
 
 # Binaries
 *.exe

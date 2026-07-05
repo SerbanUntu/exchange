@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package exchange;
+
+service OrderService {
+  rpc SubmitOrder (OrderRequest) returns (OrderResponse);
+}
+
+message OrderRequest {
+  string symbol = 1;
+  double quantity = 2;
+}
+
+message OrderResponse {
+  bool success = 1;
+}
