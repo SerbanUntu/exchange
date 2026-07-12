@@ -1,23 +1,59 @@
 #include <server/main.hpp>
 
+#include "common/model/universe.hpp"
 #include "common/util/logging.hpp"
 
-#include <exchange.pb.h>
-#include <exchange.grpc.pb.h>
+#include <gateway.pb.h>
+#include <gateway.grpc.pb.h>
 
 #include <grpcpp/grpcpp.h>
 
 namespace exchange::server
 {
-class OrderServiceImpl final : public OrderService::Service
+using namespace v1;
+
+class GatewayImpl final : public Gateway::Service
 {
   public:
-    grpc::Status SubmitOrder(grpc::ServerContext *ctx, const OrderRequest *request, OrderResponse *response) override
+    grpc::Status ListSecurities(grpc::ServerContext *ctx, const google::protobuf::Empty *request,
+                                ListSecuritiesResponse *response) override
     {
-        const auto LOG = common::util::LogService::getLogger(common::util::LogProducer::ORDER_MANAGER);
-        LOG->info("Received order for {} of {}.", request->quantity(), request->symbol());
-        response->set_success(true);
-        LOG->info("Order accepted.");
+        for (const auto &security : common::model::Universe::getSecurities())
+        {
+            auto *securityPtr = response->add_securities();
+            *securityPtr = security;
+        }
+        return grpc::Status::OK;
+    }
+
+    grpc::Status GetSecurityById(grpc::ServerContext *context, const GetSecurityByIdRequest *request,
+                                 Security *response) override
+    {
+        auto allSecurities = common::model::Universe::getSecurities();
+        // NOLINTNEXTLINE(readability-qualified-auto) - std::array::iterator is not a pointer on all platforms
+        const auto it = std::ranges::find_if(allSecurities, [&request](const auto &security) {
+            return security.security_id() == request->security_id();
+        });
+        if (it == allSecurities.end())
+        {
+            return {grpc::StatusCode::NOT_FOUND, "No security exists with the provided id."};
+        }
+        *response = *it;
+        return grpc::Status::OK;
+    }
+
+    grpc::Status GetSecurityBySymbol(grpc::ServerContext *context, const GetSecurityBySymbolRequest *request,
+                                     Security *response) override
+    {
+        auto allSecurities = common::model::Universe::getSecurities();
+        // NOLINTNEXTLINE(readability-qualified-auto) - std::array::iterator is not a pointer on all platforms
+        const auto it = std::ranges::find_if(
+            allSecurities, [&request](const auto &security) { return security.symbol() == request->symbol(); });
+        if (it == allSecurities.end())
+        {
+            return {grpc::StatusCode::NOT_FOUND, "No security exists with the provided symbol."};
+        }
+        *response = *it;
         return grpc::Status::OK;
     }
 };
@@ -27,11 +63,11 @@ int main() noexcept
     std::shared_ptr<spdlog::logger> LOG = nullptr;
     try
     {
-        LOG = common::util::LogService::getLogger(common::util::LogProducer::ORDER_MANAGER);
+        LOG = common::util::LogService::getLogger(common::util::LogProducer::GATEWAY);
         LOG->info("Starting the exchange server.");
 
         const std::string address = "0.0.0.0:8989";
-        OrderServiceImpl service;
+        GatewayImpl service;
 
         grpc::ServerBuilder builder;
         builder.AddListeningPort(address, grpc::InsecureServerCredentials());

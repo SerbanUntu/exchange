@@ -2,8 +2,8 @@
 
 #include "common/util/logging.hpp"
 
-#include <exchange.pb.h>
-#include <exchange.grpc.pb.h>
+#include <gateway.pb.h>
+#include <gateway.grpc.pb.h>
 
 #include <grpcpp/grpcpp.h>
 
@@ -12,6 +12,8 @@
 
 namespace exchange::client
 {
+using namespace v1;
+
 int main() noexcept
 {
     std::shared_ptr<spdlog::logger> LOG = nullptr;
@@ -22,22 +24,20 @@ int main() noexcept
         LOG->info("Starting the exchange client.");
 
         const auto channel = grpc::CreateChannel("localhost:8989", grpc::InsecureChannelCredentials());
-        const auto stub = OrderService::NewStub(channel);
+        const auto stub = Gateway::NewStub(channel);
 
         for (auto i = 0; i < NUMBER_OF_REQUESTS; ++i)
         {
             std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
-            OrderRequest request;
-            request.set_symbol("AAPL");
-            request.set_quantity(100);
+            google::protobuf::Empty emptyRequest;
 
-            OrderResponse response;
+            ListSecuritiesResponse response;
             grpc::ClientContext context;
 
-            if (const grpc::Status status = stub->SubmitOrder(&context, request, &response); status.ok())
+            if (const grpc::Status status = stub->ListSecurities(&context, emptyRequest, &response); status.ok())
             {
-                LOG->info("Order response received: success={}.", response.success());
+                LOG->info("Response received: {} securities.", response.securities_size());
             }
             else
             {

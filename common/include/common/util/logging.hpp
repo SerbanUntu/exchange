@@ -12,7 +12,7 @@ namespace exchange::common::util
 enum class LogProducer : uint8_t
 {
     CLIENT,
-    ORDER_MANAGER
+    GATEWAY,
 };
 
 /**

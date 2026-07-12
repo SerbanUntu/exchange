@@ -20,7 +20,7 @@ find_package(uwebsockets)       # uwebsockets::uwebsockets
 
 enable_testing()
 
-add_subdirectory(common)
 add_subdirectory(proto)
+add_subdirectory(common)
 add_subdirectory(client)
 add_subdirectory(server)

@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+import "google/protobuf/empty.proto";
+import "orders.proto";
+import "market_data.proto";
+import "securities.proto";
+
+package exchange.v1;
+
+service Gateway {
+  rpc SubmitOrder (SubmitOrderRequest) returns (stream OrderResponse);
+  rpc GetOrder (SingleOrderRequest) returns (OrderResponse);
+  rpc WatchOrder (SingleOrderRequest) returns (stream OrderResponse);
+  rpc CancelOrder (CancelOrderRequest) returns (CancelOrderResponse);
+  rpc AmendOrder (AmendOrderRequest) returns (AmendOrderResponse);
+
+  rpc GetCandleData (CandleDataRequest) returns (CandleDataResponse);
+  rpc GetOrderBookData (OrderBookDataRequest) returns (OrderBookDataResponse);
+  rpc GetExecutionData (ExecutionDataRequest) returns (ExecutionDataResponse);
+
+  rpc ListSecurities (google.protobuf.Empty) returns (ListSecuritiesResponse);
+  rpc GetSecurityById (GetSecurityByIdRequest) returns (Security);
+  rpc GetSecurityBySymbol (GetSecurityBySymbolRequest) returns (Security);
+}

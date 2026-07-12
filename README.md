@@ -1,5 +1,9 @@
 # Stock Exchange
 
+## Further Reading
+
+Documentation about the public gRPC API of the exchange can be found in [the dedicated README](./proto/README.md).
+
 ## Local Setup
 
 ### Dependencies

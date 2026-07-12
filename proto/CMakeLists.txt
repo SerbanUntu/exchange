@@ -1,4 +1,10 @@
-add_library(exchange-proto exchange.proto)
+add_library(exchange-proto
+        common.proto
+        orders.proto
+        market_data.proto
+        securities.proto
+        gateway.proto
+)
 add_library(exchange::proto ALIAS exchange-proto)
 target_link_libraries(exchange-proto PUBLIC gRPC::grpc++ protobuf::libprotobuf)
 target_include_directories(exchange-proto PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
