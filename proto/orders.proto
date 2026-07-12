@@ -52,13 +52,13 @@ message SubmitOrderRequest {
   optional TimeInForce tif = 6;
 }
 
-message OrderResponse {// Also used as an update
+message OrderResponse {
   uint64 order_id = 1;
   OrderStatus order_status = 2;
   uint64 filled_quantity = 3;
   uint64 remaining_quantity = 4;
   uint64 cancelled_quantity = 5;
-  optional Trade most_recent_fill = 6; // Contains the fill that caused a new message to be sent
+  optional Trade most_recent_fill = 6;
 }
 
 message SingleOrderRequest {

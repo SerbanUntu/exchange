@@ -2,12 +2,9 @@
 
 namespace exchange::common::model
 {
-std::shared_ptr<std::array<Security, Universe::NUMBER_OF_SECURITIES>> Universe::securities = nullptr;
-
-std::shared_ptr<const std::array<Security, Universe::NUMBER_OF_SECURITIES>> Universe::getSecurities()
+const std::array<Security, Universe::NUMBER_OF_SECURITIES> &Universe::getSecurities()
 {
-    if (securities == nullptr)
-    {
+    static const std::array<Security, NUMBER_OF_SECURITIES> securities = [] {
         Security nord{};
         nord.set_security_id(1);
         nord.set_symbol("NORD");
@@ -25,9 +22,8 @@ std::shared_ptr<const std::array<Security, Universe::NUMBER_OF_SECURITIES>> Univ
         ozno.set_symbol("OZNO");
         ozno.set_name("Ozono");
         ozno.set_description("High-end dental clinic.");
-
-        securities = std::make_shared<std::array<Security, NUMBER_OF_SECURITIES>>(std::array{nord, dnia, ozno});
-    }
+        return std::array{nord, dnia, ozno};
+    }();
 
     return securities;
 }

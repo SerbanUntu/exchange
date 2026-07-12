@@ -18,7 +18,7 @@ class GatewayImpl final : public Gateway::Service
     grpc::Status ListSecurities(grpc::ServerContext *ctx, const google::protobuf::Empty *request,
                                 ListSecuritiesResponse *response) override
     {
-        for (const auto &security : *common::model::Universe::getSecurities())
+        for (const auto &security : common::model::Universe::getSecurities())
         {
             auto *securityPtr = response->add_securities();
             *securityPtr = security;
@@ -29,7 +29,8 @@ class GatewayImpl final : public Gateway::Service
     grpc::Status GetSecurityById(grpc::ServerContext *context, const GetSecurityByIdRequest *request,
                                  Security *response) override
     {
-        auto allSecurities = *common::model::Universe::getSecurities();
+        auto allSecurities = common::model::Universe::getSecurities();
+        // NOLINTNEXTLINE(readability-qualified-auto) - std::array::iterator is not a pointer on all platforms
         const auto it = std::ranges::find_if(allSecurities, [&request](const auto &security) {
             return security.security_id() == request->security_id();
         });
@@ -44,7 +45,8 @@ class GatewayImpl final : public Gateway::Service
     grpc::Status GetSecurityBySymbol(grpc::ServerContext *context, const GetSecurityBySymbolRequest *request,
                                      Security *response) override
     {
-        auto allSecurities = *common::model::Universe::getSecurities();
+        auto allSecurities = common::model::Universe::getSecurities();
+        // NOLINTNEXTLINE(readability-qualified-auto) - std::array::iterator is not a pointer on all platforms
         const auto it = std::ranges::find_if(
             allSecurities, [&request](const auto &security) { return security.symbol() == request->symbol(); });
         if (it == allSecurities.end())
