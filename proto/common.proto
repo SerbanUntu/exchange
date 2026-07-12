@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+import "google/protobuf/timestamp.proto";
+
+package exchange.v1;
+
+message Trade {
+  uint64 price = 1;
+  uint64 quantity = 2;
+  google.protobuf.Timestamp execution_time = 3;
+}

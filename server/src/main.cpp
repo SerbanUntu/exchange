@@ -3,13 +3,15 @@
 #include "common/model/universe.hpp"
 #include "common/util/logging.hpp"
 
-#include <exchange.pb.h>
-#include <exchange.grpc.pb.h>
+#include <gateway.pb.h>
+#include <gateway.grpc.pb.h>
 
 #include <grpcpp/grpcpp.h>
 
 namespace exchange::server
 {
+using namespace v1;
+
 class GatewayImpl final : public Gateway::Service
 {
   public:

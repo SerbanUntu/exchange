@@ -1,10 +1,12 @@
 #pragma once
-#include "exchange.pb.h"
+#include "securities.pb.h"
 
 #include <memory>
 
 namespace exchange::common::model
 {
+using namespace v1;
+
 class Universe
 {
   public:

@@ -1,0 +1,66 @@
+syntax = "proto3";
+
+import "google/protobuf/timestamp.proto";
+import "common.proto";
+
+package exchange.v1;
+
+enum MarketDataLevel {
+  MARKET_DATA_LEVEL_UNSPECIFIED = 0;
+  MARKET_DATA_LEVEL_L1 = 1;
+  MARKET_DATA_LEVEL_L2 = 2;
+  MARKET_DATA_LEVEL_L3 = 3;
+}
+
+message Candle {
+  google.protobuf.Timestamp start_time = 1;
+  google.protobuf.Timestamp end_time = 2;
+  uint64 opening_price = 3;
+  uint64 closing_price = 4;
+  uint64 high_price = 5;
+  uint64 low_price = 6;
+  uint64 total_quantity = 7;
+}
+
+message BookOrder {
+  uint64 price = 1;
+  uint64 quantity = 2;
+  optional uint64 order_id = 3;
+}
+
+message Execution {
+  uint64 order_id = 1;
+  repeated Trade fill_result = 2;
+}
+
+message CandleDataRequest {
+  uint32 security_id = 1;
+  uint32 resolution_minutes = 2;
+  optional google.protobuf.Timestamp start_time = 3;
+  optional google.protobuf.Timestamp end_time = 4;
+}
+
+message CandleDataResponse {
+  repeated Candle candles = 1;
+}
+
+message OrderBookDataRequest {
+  uint32 security_id = 1;
+  MarketDataLevel level = 2;
+}
+
+message OrderBookDataResponse {
+  repeated BookOrder bids = 1;
+  repeated BookOrder asks = 2;
+}
+
+message ExecutionDataRequest {
+  optional uint32 security_id = 1;
+  optional uint64 order_id = 2;
+  optional google.protobuf.Timestamp start_time = 3;
+  optional google.protobuf.Timestamp end_time = 4;
+}
+
+message ExecutionDataResponse {
+  repeated Execution executions = 1;
+}

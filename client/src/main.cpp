@@ -2,8 +2,8 @@
 
 #include "common/util/logging.hpp"
 
-#include <exchange.pb.h>
-#include <exchange.grpc.pb.h>
+#include <gateway.pb.h>
+#include <gateway.grpc.pb.h>
 
 #include <grpcpp/grpcpp.h>
 
@@ -12,6 +12,8 @@
 
 namespace exchange::client
 {
+using namespace v1;
+
 int main() noexcept
 {
     std::shared_ptr<spdlog::logger> LOG = nullptr;
