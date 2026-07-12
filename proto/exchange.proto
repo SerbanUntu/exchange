@@ -155,7 +155,8 @@ message ExecutionDataResponse {
 message Security {
   uint32 security_id = 1;
   string symbol = 2;
-  string description = 3;
+  string name = 3;
+  string description = 4;
 } // Lot size is 1 share. Tick size is 1 cent. Currency is Euros.
 
 message ListSecuritiesResponse {

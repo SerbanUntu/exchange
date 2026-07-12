@@ -9,8 +9,8 @@ std::string LogService::producerToString(const LogProducer producer)
     {
     case LogProducer::CLIENT:
         return "client";
-    case LogProducer::ORDER_MANAGER:
-        return "ord_man";
+    case LogProducer::GATEWAY:
+        return "gateway";
     default:
         [[unlikely]] throw std::logic_error("Invalid LogProducer value: " + std::to_string(static_cast<int>(producer)));
     }
