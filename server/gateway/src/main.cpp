@@ -1,4 +1,4 @@
-#include <server/main.hpp>
+#include <server/gateway/main.hpp>
 
 #include "common/model/universe.hpp"
 #include "common/util/logging.hpp"
@@ -8,7 +8,7 @@
 
 #include <grpcpp/grpcpp.h>
 
-namespace exchange::server
+namespace exchange::server::gateway
 {
 using namespace v1;
 
@@ -64,7 +64,7 @@ int main() noexcept
     try
     {
         LOG = common::util::LogService::getLogger(common::util::LogProducer::GATEWAY);
-        LOG->info("Starting the exchange server.");
+        LOG->info("Starting the exchange server gateway.");
 
         const std::string address = "0.0.0.0:8989";
         GatewayImpl service;
@@ -89,9 +89,9 @@ int main() noexcept
         return 1;
     }
 }
-} // namespace exchange::server
+} // namespace exchange::server::gateway
 
 int main()
 {
-    return exchange::server::main();
+    return exchange::server::gateway::main();
 }

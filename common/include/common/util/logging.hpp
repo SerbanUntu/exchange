@@ -11,8 +11,14 @@ namespace exchange::common::util
  */
 enum class LogProducer : uint8_t
 {
+    ARCHIVER,
+    CANDLESTICK_PUBLISHER,
     CLIENT,
+    EXECUTION_PUBLISHER,
     GATEWAY,
+    MATCHING_ENGINE,
+    ORDER_MANAGER,
+    ORDERBOOK_PUBLISHER,
 };
 
 /**

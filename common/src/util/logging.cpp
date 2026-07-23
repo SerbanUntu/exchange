@@ -7,10 +7,22 @@ std::string LogService::producerToString(const LogProducer producer)
 {
     switch (producer)
     {
+    case LogProducer::ARCHIVER:
+        return "archive";
+    case LogProducer::CANDLESTICK_PUBLISHER:
+        return "candles";
     case LogProducer::CLIENT:
         return "client";
+    case LogProducer::EXECUTION_PUBLISHER:
+        return "exec";
     case LogProducer::GATEWAY:
         return "gateway";
+    case LogProducer::MATCHING_ENGINE:
+        return "matcher";
+    case LogProducer::ORDER_MANAGER:
+        return "ord_man";
+    case LogProducer::ORDERBOOK_PUBLISHER:
+        return "book";
     default:
         [[unlikely]] throw std::logic_error("Invalid LogProducer value: " + std::to_string(static_cast<int>(producer)));
     }
