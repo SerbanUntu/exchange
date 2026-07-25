@@ -14,4 +14,5 @@ target_sources(exchange-server-archiver
 target_link_libraries(exchange-server-archiver
         PUBLIC
         exchange::common
+        exchange::server::common
 )

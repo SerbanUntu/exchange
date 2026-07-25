@@ -14,4 +14,5 @@ target_sources(exchange-server-order-manager
 target_link_libraries(exchange-server-order-manager
         PUBLIC
         exchange::common
+        exchange::server::common
 )

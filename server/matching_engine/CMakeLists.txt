@@ -14,4 +14,5 @@ target_sources(exchange-server-matching-engine
 target_link_libraries(exchange-server-matching-engine
         PUBLIC
         exchange::common
+        exchange::server::common
 )

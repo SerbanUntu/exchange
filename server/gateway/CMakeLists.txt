@@ -13,6 +13,7 @@ target_sources(exchange-server-gateway
 target_link_libraries(exchange-server-gateway
         PUBLIC
         exchange::common
+        exchange::server::common
         exchange::proto
         gRPC::grpc++
 )

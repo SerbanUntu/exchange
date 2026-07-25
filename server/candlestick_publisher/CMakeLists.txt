@@ -14,4 +14,5 @@ target_sources(exchange-server-candlestick
 target_link_libraries(exchange-server-candlestick
         PUBLIC
         exchange::common
+        exchange::server::common
 )

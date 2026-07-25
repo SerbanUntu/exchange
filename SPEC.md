@@ -47,7 +47,7 @@ to answer gRPC calls, then responds to Network.
 - Authentication
     - Uses JWT (`jwt-cpp` library).
 - Request/response correlation (order IDs)
-    - Every internal event the Gateway writes to the Event Stream carries a Gateway-assigned correlation id (e.g., gateway thread id and a monotonically increasing sequence number).
+    - Every internal event the Gateway writes to the Event Stream carries a Gateway-assigned correlation id (e.g., gateway thread id, security id, and a monotonically increasing sequence number).
     - This acts as the order ID.
 
 ## Gateway (stateless)

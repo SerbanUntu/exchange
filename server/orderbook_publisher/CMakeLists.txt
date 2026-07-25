@@ -14,4 +14,5 @@ target_sources(exchange-server-orderbook
 target_link_libraries(exchange-server-orderbook
         PUBLIC
         exchange::common
+        exchange::server::common
 )

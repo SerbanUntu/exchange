@@ -1,5 +1,6 @@
 add_subdirectory(archiver_process)
 add_subdirectory(candlestick_publisher)
+add_subdirectory(common)
 add_subdirectory(execution_publisher)
 add_subdirectory(gateway)
 add_subdirectory(matching_engine)

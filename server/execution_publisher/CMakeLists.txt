@@ -14,4 +14,5 @@ target_sources(exchange-server-execution
 target_link_libraries(exchange-server-execution
         PUBLIC
         exchange::common
+        exchange::server::common
 )
