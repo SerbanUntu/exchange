@@ -8,13 +8,17 @@ namespace exchange::server::common::model
 struct OrderMatchedAction : Action
 {
     const Quantity matchedQuantity;
-    const bool isFullyMatched;
     const Price price;
 
     OrderMatchedAction(const OrderId orderId, const AccountId accountId, const Quantity matchedQuantity,
-                       const bool isFullyMatched, const Price price)
-        : Action(orderId, accountId), matchedQuantity(matchedQuantity), isFullyMatched(isFullyMatched), price(price)
+                       const Price price)
+        : Action(orderId, accountId), matchedQuantity(matchedQuantity), price(price)
     {
+    }
+
+    [[nodiscard]] ActionType getType() const override
+    {
+        return ActionType::ORDER_MATCHED;
     }
 };
 } // namespace exchange::server::common::model

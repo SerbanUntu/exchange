@@ -18,5 +18,10 @@ struct AmendLimitOrderEvent : Event
         : Event(orderId, accountId), quantity(quantity), price(price)
     {
     }
+
+    [[nodiscard]] EventType getType() const override
+    {
+        return EventType::AMEND_LIMIT_ORDER;
+    }
 };
 } // namespace exchange::server::common::model

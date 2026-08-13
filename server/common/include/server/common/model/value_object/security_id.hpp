@@ -1,4 +1,5 @@
 #pragma once
+#include <functional>
 #include <cstdint>
 
 namespace exchange::server::common::model
@@ -9,5 +10,18 @@ struct SecurityId
     explicit SecurityId(const uint32_t value) : value(value)
     {
     }
+
+    bool operator==(const SecurityId &other) const
+    {
+        return value == other.value;
+    }
 };
 } // namespace exchange::server::common::model
+
+template <> struct std::hash<exchange::server::common::model::SecurityId>
+{
+    std::size_t operator()(const exchange::server::common::model::SecurityId &id) const noexcept
+    {
+        return std::hash<uint32_t>{}(id.value);
+    }
+};

@@ -12,13 +12,16 @@ target_sources(exchange-server-common
         include/server/common/collections/orderbook/orderbook.hpp
         include/server/common/collections/orderbook/price_node.hpp
         include/server/common/model/action/action.hpp
+        include/server/common/model/action/action_type.hpp
         include/server/common/model/action/order_added_action.hpp
         include/server/common/model/action/order_amended_action.hpp
+        include/server/common/model/action/order_cancelled_action.hpp
+        include/server/common/model/action/order_executed_action.hpp
         include/server/common/model/action/order_matched_action.hpp
-        include/server/common/model/action/order_removed_action.hpp
         include/server/common/model/event/amend_limit_order_event.hpp
         include/server/common/model/event/cancel_limit_order_event.hpp
         include/server/common/model/event/event.hpp
+        include/server/common/model/event/event_type.hpp
         include/server/common/model/event/new_limit_order_event.hpp
         include/server/common/model/event/new_market_order_event.hpp
         include/server/common/model/value_object/account_id.hpp
@@ -29,4 +32,10 @@ target_sources(exchange-server-common
         include/server/common/model/order_type.hpp
         include/server/common/model/side.hpp
         include/server/common/model/time_in_force.hpp
+)
+
+target_link_libraries(exchange-server-common
+        PUBLIC
+        exchange::common
+        boost::boost
 )

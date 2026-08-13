@@ -20,5 +20,10 @@ struct NewLimitOrderEvent : Event
         : Event(orderId, accountId), side(side), quantity(quantity), price(price), tif(tif)
     {
     }
+
+    [[nodiscard]] EventType getType() const override
+    {
+        return EventType::NEW_LIMIT_ORDER;
+    }
 };
 } // namespace exchange::server::common::model

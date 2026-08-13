@@ -1,19 +1,22 @@
 #pragma once
+#include "server/common/model/value_object/security_id.hpp"
+#include <boost/uuid/uuid.hpp>
+
 #include <functional>
-#include <cstdint>
 
 namespace exchange::server::common::model
 {
 struct OrderId
 {
-    uint64_t value;
-    explicit OrderId(const uint64_t value) : value(value)
+    boost::uuids::uuid uuid;
+    SecurityId securityId;
+    OrderId(const boost::uuids::uuid uuid, const SecurityId securityId) : uuid(uuid), securityId(securityId)
     {
     }
 
     bool operator==(const OrderId &other) const
     {
-        return value == other.value;
+        return uuid == other.uuid && securityId == other.securityId;
     }
 };
 } // namespace exchange::server::common::model
@@ -22,6 +25,6 @@ template <> struct std::hash<exchange::server::common::model::OrderId>
 {
     std::size_t operator()(const exchange::server::common::model::OrderId &id) const noexcept
     {
-        return std::hash<uint64_t>{}(id.value);
+        return std::hash<boost::uuids::uuid>{}(id.uuid);
     }
 };

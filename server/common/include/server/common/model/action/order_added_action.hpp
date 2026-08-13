@@ -18,5 +18,10 @@ struct OrderAddedAction : Action
         : Action(orderId, accountId), price(price), quantity(quantity), timeInForce(timeInForce)
     {
     }
+
+    [[nodiscard]] ActionType getType() const override
+    {
+        return ActionType::ORDER_ADDED;
+    }
 };
 } // namespace exchange::server::common::model

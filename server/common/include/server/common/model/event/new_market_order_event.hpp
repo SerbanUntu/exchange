@@ -15,5 +15,10 @@ struct NewMarketOrderEvent : Event
         : Event(orderId, accountId), side(side), quantity(quantity)
     {
     }
+
+    [[nodiscard]] EventType getType() const override
+    {
+        return EventType::NEW_MARKET_ORDER;
+    }
 };
 } // namespace exchange::server::common::model
