@@ -27,8 +27,3 @@ int archiverProcessMain() noexcept
     }
 }
 } // namespace exchange::server
-
-int main()
-{
-    return exchange::server::archiverProcessMain();
-}

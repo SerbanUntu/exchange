@@ -27,8 +27,3 @@ int orderManagerMain() noexcept
     }
 }
 } // namespace exchange::server
-
-int main()
-{
-    return exchange::server::orderManagerMain();
-}

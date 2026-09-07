@@ -1,14 +1,15 @@
-add_executable(exchange-server-execution)
-add_executable(exchange::server::execution ALIAS exchange-server-execution)
+add_library(exchange-server-execution STATIC)
+add_library(exchange::server::execution ALIAS exchange-server-execution)
+
+file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS src/*.cpp)
+file(GLOB_RECURSE HEADERS CONFIGURE_DEPENDS include/*.hpp)
 
 target_sources(exchange-server-execution
-        PRIVATE
-        src/main.cpp
+        PRIVATE ${SOURCES}
         PUBLIC
         FILE_SET HEADERS
         BASE_DIRS include
-        FILES
-        include/server/execution_publisher/main.hpp
+        FILES ${HEADERS}
 )
 
 target_link_libraries(exchange-server-execution

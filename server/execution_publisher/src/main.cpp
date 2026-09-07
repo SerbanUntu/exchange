@@ -27,8 +27,3 @@ int executionPublisherMain() noexcept
     }
 }
 } // namespace exchange::server
-
-int main()
-{
-    return exchange::server::executionPublisherMain();
-}

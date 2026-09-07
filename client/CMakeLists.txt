@@ -1,13 +1,15 @@
-add_executable(exchange-client)
-add_executable(exchange::client ALIAS exchange-client)
+add_library(exchange-client STATIC)
+add_library(exchange::client ALIAS exchange-client)
+
+file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS src/*.cpp)
+file(GLOB_RECURSE HEADERS CONFIGURE_DEPENDS include/*.hpp)
+
 target_sources(exchange-client
-        PRIVATE
-        src/main.cpp
+        PRIVATE ${SOURCES}
         PUBLIC
         FILE_SET HEADERS
         BASE_DIRS include
-        FILES
-        include/client/main.hpp
+        FILES ${HEADERS}
 )
 
 target_link_libraries(exchange-client

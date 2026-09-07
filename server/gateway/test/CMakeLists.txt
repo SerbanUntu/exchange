@@ -1,8 +1,10 @@
 add_executable(exchange-server-gateway-test)
 add_executable(exchange::server::gateway::test ALIAS exchange-server-gateway-test)
+
+file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS *.cpp)
+
 target_sources(exchange-server-gateway-test
-        PRIVATE
-        main.cpp
+        PRIVATE ${SOURCES}
 )
 
 target_link_libraries(exchange-server-gateway-test

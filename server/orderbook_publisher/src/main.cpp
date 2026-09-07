@@ -27,8 +27,3 @@ int orderbookPublisherMain() noexcept
     }
 }
 } // namespace exchange::server
-
-int main()
-{
-    return exchange::server::orderbookPublisherMain();
-}

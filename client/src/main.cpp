@@ -58,8 +58,3 @@ int main() noexcept
     }
 }
 } // namespace exchange::client
-
-int main()
-{
-    return exchange::client::main();
-}

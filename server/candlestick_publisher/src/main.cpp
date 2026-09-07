@@ -27,8 +27,3 @@ int candlestickPublisherMain() noexcept
     }
 }
 } // namespace exchange::server
-
-int main()
-{
-    return exchange::server::candlestickPublisherMain();
-}

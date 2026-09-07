@@ -1,8 +1,10 @@
 add_executable(exchange-client-test)
 add_executable(exchange::client::test ALIAS exchange-client-test)
+
+file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS *.cpp)
+
 target_sources(exchange-client-test
-        PRIVATE
-        main.cpp
+        PRIVATE ${SOURCES}
 )
 
 target_link_libraries(exchange-client-test

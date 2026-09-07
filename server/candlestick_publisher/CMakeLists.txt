@@ -1,14 +1,15 @@
-add_executable(exchange-server-candlestick)
-add_executable(exchange::server::candlestick ALIAS exchange-server-candlestick)
+add_library(exchange-server-candlestick STATIC)
+add_library(exchange::server::candlestick ALIAS exchange-server-candlestick)
+
+file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS src/*.cpp)
+file(GLOB_RECURSE HEADERS CONFIGURE_DEPENDS include/*.hpp)
 
 target_sources(exchange-server-candlestick
-        PRIVATE
-        src/main.cpp
+        PRIVATE ${SOURCES}
         PUBLIC
         FILE_SET HEADERS
         BASE_DIRS include
-        FILES
-        include/server/candlestick_publisher/main.hpp
+        FILES ${HEADERS}
 )
 
 target_link_libraries(exchange-server-candlestick
