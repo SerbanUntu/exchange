@@ -4,31 +4,31 @@
 
 #include <spdlog/logger.h>
 
-namespace exchange::server::candlestick
+namespace exchange::server
 {
-int main() noexcept
+int candlestickPublisherMain() noexcept
 {
     std::shared_ptr<spdlog::logger> LOG = nullptr;
     try
     {
-        LOG = common::util::LogService::getLogger(common::util::LogProducer::CANDLESTICK_PUBLISHER);
+        LOG = common::LogService::getLogger(common::LogProducer::CANDLESTICK_PUBLISHER);
         LOG->info("Hello from the Candlestick Publisher.");
         return 0;
     }
     catch (const std::exception &err)
     {
-        common::util::reportException(LOG, err);
+        common::reportException(LOG, err);
         return 1;
     }
     catch (...)
     {
-        common::util::reportUnknownException(LOG);
+        common::reportUnknownException(LOG);
         return 1;
     }
 }
-} // namespace exchange::server::candlestick
+} // namespace exchange::server
 
 int main()
 {
-    return exchange::server::candlestick::main();
+    return exchange::server::candlestickPublisherMain();
 }

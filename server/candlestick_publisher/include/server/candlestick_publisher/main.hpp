@@ -1,11 +1,11 @@
 #pragma once
 
-namespace exchange::server::candlestick
+namespace exchange::server
 {
 /**
  * The starting point of the exchange candlestick data publisher.
  *
  * @return The exit code of the program.
  */
-int main() noexcept;
-} // namespace exchange::server::candlestick_publisher
+int candlestickPublisherMain() noexcept;
+} // namespace exchange::server

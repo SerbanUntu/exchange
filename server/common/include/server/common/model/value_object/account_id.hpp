@@ -1,7 +1,7 @@
 #pragma once
 
 #include <cstdint>
-namespace exchange::server::common::model
+namespace exchange::server
 {
 struct AccountId
 {
@@ -10,4 +10,4 @@ struct AccountId
     {
     }
 };
-} // namespace exchange::server::common::model
+} // namespace exchange::server

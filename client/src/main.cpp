@@ -20,7 +20,7 @@ int main() noexcept
     try
     {
         constexpr int NUMBER_OF_REQUESTS = 1000;
-        LOG = common::util::LogService::getLogger(common::util::LogProducer::CLIENT);
+        LOG = common::LogService::getLogger(common::LogProducer::CLIENT);
         LOG->info("Starting the exchange client.");
 
         const auto channel = grpc::CreateChannel("localhost:8989", grpc::InsecureChannelCredentials());
@@ -48,12 +48,12 @@ int main() noexcept
     }
     catch (const std::exception &err)
     {
-        common::util::reportException(LOG, err);
+        common::reportException(LOG, err);
         return 1;
     }
     catch (...)
     {
-        common::util::reportUnknownException(LOG);
+        common::reportUnknownException(LOG);
         return 1;
     }
 }

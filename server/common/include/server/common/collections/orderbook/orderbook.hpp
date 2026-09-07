@@ -10,25 +10,25 @@
 #include <set>
 #include <unordered_map>
 
-namespace exchange::server::common::collections
+namespace exchange::server
 {
 class OrderBook
 {
-    std::unordered_map<model::Price, std::unique_ptr<PriceNode>> buyLevels;
-    std::unordered_map<model::Price, std::unique_ptr<PriceNode>> sellLevels;
-    std::unordered_map<model::OrderId, std::unique_ptr<OrderNode>> orderMap;
-    std::set<model::Price> buyPriceSet;
-    std::set<model::Price> sellPriceSet;
+    std::unordered_map<Price, std::unique_ptr<PriceNode>> buyLevels;
+    std::unordered_map<Price, std::unique_ptr<PriceNode>> sellLevels;
+    std::unordered_map<OrderId, std::unique_ptr<OrderNode>> orderMap;
+    std::set<Price> buyPriceSet;
+    std::set<Price> sellPriceSet;
 
   public:
-    void addOrder(model::OrderId orderId, model::AccountId accountId, model::Side side, model::Price price, model::Quantity quantity,
-                  model::TimeInForce timeInForce) noexcept;
-    bool removeOrder(model::OrderId orderId, model::AccountId accountId) noexcept;
-    bool amendOrder(model::OrderId orderId, model::AccountId accountId, model::Quantity newQuantity) noexcept;
-    bool amendOrder(model::OrderId orderId, model::AccountId accountId, model::Price price) noexcept;
-    bool amendOrder(model::OrderId orderId, model::AccountId accountId, model::Quantity newQuantity,
-                    model::Price price) noexcept;
-    bool partiallyFillOrder(model::OrderId orderId, model::AccountId accountId, model::Quantity filledQuantity) noexcept;
+    void addOrder(OrderId orderId, AccountId accountId, Side side, Price price, Quantity quantity,
+                  TimeInForce timeInForce) noexcept;
+    bool removeOrder(OrderId orderId, AccountId accountId) noexcept;
+    bool amendOrder(OrderId orderId, AccountId accountId, Quantity newQuantity) noexcept;
+    bool amendOrder(OrderId orderId, AccountId accountId, Price price) noexcept;
+    bool amendOrder(OrderId orderId, AccountId accountId, Quantity newQuantity,
+                    Price price) noexcept;
+    bool partiallyFillOrder(OrderId orderId, AccountId accountId, Quantity filledQuantity) noexcept;
 
     /**
      *
@@ -38,7 +38,7 @@ class OrderBook
      * @param allOrNothing If true, no orders will be matched if the quantity cannot be fully matched
      * @return A pair of matched orders and the remaining quantity that could not be matched
      */
-    std::pair<std::vector<MatchedOrder>, model::Quantity> matchOrders(model::Side side, model::Price price,
-                                                                      model::Quantity quantity, bool allOrNothing) noexcept;
+    std::pair<std::vector<MatchedOrder>, Quantity> matchOrders(Side side, Price price,
+                                                              Quantity quantity, bool allOrNothing) noexcept;
 };
-} // namespace exchange::server::common::collections
+} // namespace exchange::server

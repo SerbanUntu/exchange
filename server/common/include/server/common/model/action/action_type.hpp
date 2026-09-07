@@ -1,7 +1,7 @@
 #pragma once
 #include <cstdint>
 
-namespace exchange::server::common::model
+namespace exchange::server
 {
     enum class ActionType : uint8_t
     {

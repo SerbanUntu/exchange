@@ -6,7 +6,7 @@
 #include "server/common/model/value_object/price.hpp"
 #include "server/common/model/value_object/quantity.hpp"
 
-namespace exchange::server::common::model
+namespace exchange::server
 {
 struct NewLimitOrderEvent : Event
 {
@@ -26,4 +26,4 @@ struct NewLimitOrderEvent : Event
         return EventType::NEW_LIMIT_ORDER;
     }
 };
-} // namespace exchange::server::common::model
+} // namespace exchange::server

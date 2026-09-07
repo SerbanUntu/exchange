@@ -4,21 +4,21 @@
 #include "server/common/model/value_object/price.hpp"
 #include "server/common/model/value_object/quantity.hpp"
 
-namespace exchange::server::common::collections
+namespace exchange::server
 {
 struct MatchedOrder
 {
-    const model::OrderId orderId;
-    const model::AccountId accountId;
-    const model::Quantity matchedQuantity;
+    const OrderId orderId;
+    const AccountId accountId;
+    const Quantity matchedQuantity;
     const bool isFullyMatched;
-    const model::Price price;
+    const Price price;
 
-    MatchedOrder(const model::OrderId orderId, const model::AccountId accountId, const model::Quantity matchedQuantity,
-                 const bool isFullyMatched, const model::Price price)
+    MatchedOrder(OrderId orderId, AccountId accountId, Quantity matchedQuantity, const bool isFullyMatched,
+                 const Price price)
         : orderId(orderId), accountId(accountId), matchedQuantity(matchedQuantity), isFullyMatched(isFullyMatched),
           price(price)
     {
     }
 };
-} // namespace exchange::server::common::collections
+} // namespace exchange::server

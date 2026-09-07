@@ -3,7 +3,7 @@
 #include "server/common/model/value_object/price.hpp"
 #include "server/common/model/value_object/quantity.hpp"
 
-namespace exchange::server::common::model
+namespace exchange::server
 {
 struct OrderMatchedAction : Action
 {
@@ -21,4 +21,4 @@ struct OrderMatchedAction : Action
         return ActionType::ORDER_MATCHED;
     }
 };
-} // namespace exchange::server::common::model
+} // namespace exchange::server

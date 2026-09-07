@@ -2,7 +2,7 @@
 
 #include <cstdint>
 #include <compare>
-namespace exchange::server::common::model
+namespace exchange::server
 {
 struct Quantity
 {
@@ -18,4 +18,4 @@ struct Quantity
         return Quantity(value - other.value);
     }
 };
-} // namespace exchange::server::common::model
+} // namespace exchange::server

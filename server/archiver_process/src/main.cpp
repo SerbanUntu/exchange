@@ -4,31 +4,31 @@
 
 #include <spdlog/logger.h>
 
-namespace exchange::server::archiver
+namespace exchange::server
 {
-int main() noexcept
+int archiverProcessMain() noexcept
 {
     std::shared_ptr<spdlog::logger> LOG = nullptr;
     try
     {
-        LOG = common::util::LogService::getLogger(common::util::LogProducer::ARCHIVER);
+        LOG = common::LogService::getLogger(common::LogProducer::ARCHIVER);
         LOG->info("Hello from the Archiver.");
         return 0;
     }
     catch (const std::exception &err)
     {
-        common::util::reportException(LOG, err);
+        common::reportException(LOG, err);
         return 1;
     }
     catch (...)
     {
-        common::util::reportUnknownException(LOG);
+        common::reportUnknownException(LOG);
         return 1;
     }
 }
-} // namespace exchange::server::archiver
+} // namespace exchange::server
 
 int main()
 {
-    return exchange::server::archiver::main();
+    return exchange::server::archiverProcessMain();
 }

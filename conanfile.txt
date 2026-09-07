@@ -21,3 +21,6 @@ cmake_layout
 [options]
 grpc/*:shared=False
 protobuf/*:shared=False
+
+[conf]
+tools.cmake.cmaketoolchain:generator=Ninja

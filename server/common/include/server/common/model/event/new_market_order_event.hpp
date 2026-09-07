@@ -4,7 +4,7 @@
 #include "server/common/model/event/event.hpp"
 #include "server/common/model/value_object/quantity.hpp"
 
-namespace exchange::server::common::model
+namespace exchange::server
 {
 struct NewMarketOrderEvent : Event
 {
@@ -21,4 +21,4 @@ struct NewMarketOrderEvent : Event
         return EventType::NEW_MARKET_ORDER;
     }
 };
-} // namespace exchange::server::common::model
+} // namespace exchange::server

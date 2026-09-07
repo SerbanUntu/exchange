@@ -1,15 +1,15 @@
 #include "server/common/collections/orderbook/orderbook.hpp"
 
-namespace exchange::server::common::collections
+namespace exchange::server
 {
-void OrderBook::addOrder(model::OrderId orderId, model::AccountId accountId, const model::Side side, model::Price price,
-                         model::Quantity quantity, model::TimeInForce timeInForce) noexcept
+void OrderBook::addOrder(OrderId orderId, AccountId accountId, const Side side, Price price,
+                         Quantity quantity, TimeInForce timeInForce) noexcept
 {
     auto ownedOrderNode{std::make_unique<OrderNode>(orderId, accountId, quantity, timeInForce)};
     auto *const orderNode{ownedOrderNode.get()};
     PriceNode *priceNode{nullptr};
-    auto &priceLevels{side == model::Side::BUY ? buyLevels : sellLevels};
-    auto &priceSet{side == model::Side::BUY ? buyPriceSet : sellPriceSet};
+    auto &priceLevels{side == Side::BUY ? buyLevels : sellLevels};
+    auto &priceSet{side == Side::BUY ? buyPriceSet : sellPriceSet};
 
     if (const auto it{priceLevels.find(price)}; it == priceLevels.end())
     {
@@ -42,4 +42,4 @@ void OrderBook::addOrder(model::OrderId orderId, model::AccountId accountId, con
     priceNode->setTail(orderNode);
     orderMap[orderId] = std::move(ownedOrderNode);
 }
-} // namespace exchange::server::common::collections
+} // namespace exchange::server

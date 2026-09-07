@@ -6,7 +6,7 @@
 
 #include <optional>
 
-namespace exchange::server::common::model
+namespace exchange::server
 {
 struct AmendLimitOrderEvent : Event
 {
@@ -24,4 +24,4 @@ struct AmendLimitOrderEvent : Event
         return EventType::AMEND_LIMIT_ORDER;
     }
 };
-} // namespace exchange::server::common::model
+} // namespace exchange::server

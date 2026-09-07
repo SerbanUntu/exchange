@@ -4,31 +4,31 @@
 
 #include <spdlog/logger.h>
 
-namespace exchange::server::book
+namespace exchange::server
 {
-int main() noexcept
+int orderbookPublisherMain() noexcept
 {
     std::shared_ptr<spdlog::logger> LOG = nullptr;
     try
     {
-        LOG = common::util::LogService::getLogger(common::util::LogProducer::ORDERBOOK_PUBLISHER);
+        LOG = common::LogService::getLogger(common::LogProducer::ORDERBOOK_PUBLISHER);
         LOG->info("Hello from the Orderbook Publisher.");
         return 0;
     }
     catch (const std::exception &err)
     {
-        common::util::reportException(LOG, err);
+        common::reportException(LOG, err);
         return 1;
     }
     catch (...)
     {
-        common::util::reportUnknownException(LOG);
+        common::reportUnknownException(LOG);
         return 1;
     }
 }
-} // namespace exchange::server::book
+} // namespace exchange::server
 
 int main()
 {
-    return exchange::server::book::main();
+    return exchange::server::orderbookPublisherMain();
 }

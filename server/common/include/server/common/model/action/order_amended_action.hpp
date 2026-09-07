@@ -5,7 +5,7 @@
 
 #include <optional>
 
-namespace exchange::server::common::model
+namespace exchange::server
 {
 struct OrderAmendedAction : Action
 {
@@ -23,4 +23,4 @@ struct OrderAmendedAction : Action
         return ActionType::ORDER_AMENDED;
     }
 };
-} // namespace exchange::server::common::model
+} // namespace exchange::server

@@ -4,31 +4,31 @@
 
 #include <spdlog/logger.h>
 
-namespace exchange::server::order
+namespace exchange::server
 {
-int main() noexcept
+int orderManagerMain() noexcept
 {
     std::shared_ptr<spdlog::logger> LOG = nullptr;
     try
     {
-        LOG = common::util::LogService::getLogger(common::util::LogProducer::ORDER_MANAGER);
+        LOG = common::LogService::getLogger(common::LogProducer::ORDER_MANAGER);
         LOG->info("Hello from the Order Manager.");
         return 0;
     }
     catch (const std::exception &err)
     {
-        common::util::reportException(LOG, err);
+        common::reportException(LOG, err);
         return 1;
     }
     catch (...)
     {
-        common::util::reportUnknownException(LOG);
+        common::reportUnknownException(LOG);
         return 1;
     }
 }
-} // namespace exchange::server::order
+} // namespace exchange::server
 
 int main()
 {
-    return exchange::server::order::main();
+    return exchange::server::orderManagerMain();
 }

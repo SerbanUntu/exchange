@@ -6,7 +6,7 @@
 #include "server/common/model/value_object/price.hpp"
 #include "server/common/model/value_object/quantity.hpp"
 
-namespace exchange::server::common::model
+namespace exchange::server
 {
 struct OrderAddedAction : Action
 {
@@ -24,4 +24,4 @@ struct OrderAddedAction : Action
         return ActionType::ORDER_ADDED;
     }
 };
-} // namespace exchange::server::common::model
+} // namespace exchange::server

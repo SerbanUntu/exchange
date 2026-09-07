@@ -1,22 +1,22 @@
 #pragma once
 #include "server/common/model/value_object/price.hpp"
 
-namespace exchange::server::common::collections
+namespace exchange::server
 {
 class PriceNode
 {
-    const model::Price price;
+    const Price price;
     PriceNode *prev{nullptr}; // non-owning
     PriceNode *next{nullptr}; // non-owning
     OrderNode *head{nullptr}; // non-owning
     OrderNode *tail{nullptr}; // non-owning
 
   public:
-    explicit PriceNode(const model::Price price) : price(price)
+    explicit PriceNode(const Price price) : price(price)
     {
     }
 
-    [[nodiscard]] model::Price getPrice() const
+    [[nodiscard]] Price getPrice() const
     {
         return price;
     }
@@ -82,4 +82,4 @@ class PriceNode
     }
 };
 
-} // namespace exchange::server::common::collections
+} // namespace exchange::server

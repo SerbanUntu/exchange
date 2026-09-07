@@ -3,7 +3,7 @@
 #include <memory>
 #include <spdlog/spdlog.h>
 
-namespace exchange::common::util
+namespace exchange::common
 {
 
 /**
@@ -54,4 +54,4 @@ void reportException(const std::shared_ptr<spdlog::logger> &logger, const std::e
  * @param logger The logger to attempt to write to.
  */
 void reportUnknownException(const std::shared_ptr<spdlog::logger> &logger) noexcept;
-} // namespace exchange::common::util
+} // namespace exchange::common

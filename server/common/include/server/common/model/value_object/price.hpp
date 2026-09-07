@@ -2,7 +2,7 @@
 #include <functional>
 #include <cstdint>
 
-namespace exchange::server::common::model
+namespace exchange::server
 {
 struct Price
 {
@@ -22,11 +22,11 @@ struct Price
 
     }
 };
-} // namespace exchange::server::common::model
+} // namespace exchange::server
 
-template <> struct std::hash<exchange::server::common::model::Price>
+template <> struct std::hash<exchange::server::Price>
 {
-    std::size_t operator()(const exchange::server::common::model::Price &price) const noexcept
+    std::size_t operator()(const exchange::server::Price &price) const noexcept
     {
         return std::hash<uint64_t>{}(price.value);
     }

@@ -1,7 +1,7 @@
 #pragma once
 #include "server/common/model/action/action.hpp"
 
-namespace exchange::server::common::model
+namespace exchange::server
 {
 struct OrderCancelledAction : Action
 {
@@ -14,4 +14,4 @@ struct OrderCancelledAction : Action
         return ActionType::ORDER_CANCELLED;
     }
 };
-} // namespace exchange::server::common::model
+} // namespace exchange::server

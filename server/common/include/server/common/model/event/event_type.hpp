@@ -1,7 +1,7 @@
 #pragma once
 #include <cstdint>
 
-namespace exchange::server::common::model
+namespace exchange::server
 {
     enum class EventType : uint8_t
     {

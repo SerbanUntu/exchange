@@ -1,11 +1,11 @@
 #pragma once
 
-namespace exchange::server::order
+namespace exchange::server
 {
 /**
  * The starting point of the Order Manager.
  *
  * @return The exit code of the program.
  */
-int main() noexcept;
-} // namespace exchange::server::order
+int orderManagerMain() noexcept;
+} // namespace exchange::server

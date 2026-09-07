@@ -4,7 +4,7 @@
 
 #include <functional>
 
-namespace exchange::server::common::model
+namespace exchange::server
 {
 struct OrderId
 {
@@ -19,11 +19,11 @@ struct OrderId
         return uuid == other.uuid && securityId == other.securityId;
     }
 };
-} // namespace exchange::server::common::model
+} // namespace exchange::server
 
-template <> struct std::hash<exchange::server::common::model::OrderId>
+template <> struct std::hash<exchange::server::OrderId>
 {
-    std::size_t operator()(const exchange::server::common::model::OrderId &id) const noexcept
+    std::size_t operator()(const exchange::server::OrderId &id) const noexcept
     {
         return std::hash<boost::uuids::uuid>{}(id.uuid);
     }

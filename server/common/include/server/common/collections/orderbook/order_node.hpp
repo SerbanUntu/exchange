@@ -3,56 +3,56 @@
 #include "server/common/model/value_object/account_id.hpp"
 #include "server/common/model/value_object/quantity.hpp"
 
-namespace exchange::server::common::collections
+namespace exchange::server
 {
 class OrderNode
 {
-    const model::OrderId orderId;
-    const model::AccountId accountId;
-    model::Quantity totalQuantity;
-    model::Quantity executedQuantity{0};
-    const model::TimeInForce timeInForce;
-    OrderNode *prev{nullptr}; // non-owning
-    OrderNode *next{nullptr}; // non-owning
+    const OrderId orderId;
+    const AccountId accountId;
+    Quantity totalQuantity;
+    Quantity executedQuantity{0};
+    const TimeInForce timeInForce;
+    OrderNode *prev{nullptr};
+    OrderNode *next{nullptr};
 
   public:
-    explicit OrderNode(const model::OrderId orderId, const model::AccountId accountId, const model::Quantity totalQuantity,
-                       const model::TimeInForce timeInForce)
+    explicit OrderNode(const OrderId orderId, const AccountId accountId, const Quantity totalQuantity,
+                       const TimeInForce timeInForce)
         : orderId(orderId), accountId(accountId), totalQuantity(totalQuantity), timeInForce(timeInForce)
     {
     }
 
-    [[nodiscard]] model::OrderId getOrderId() const
+    [[nodiscard]] OrderId getOrderId() const
     {
         return orderId;
     }
 
-    [[nodiscard]] model::AccountId getAccountId() const
+    [[nodiscard]] AccountId getAccountId() const
     {
         return accountId;
     }
 
-    [[nodiscard]] model::Quantity getTotalQuantity() const
+    [[nodiscard]] Quantity getTotalQuantity() const
     {
         return totalQuantity;
     }
 
-    void setTotalQuantity(const model::Quantity newTotalQuantity)
+    void setTotalQuantity(const Quantity newTotalQuantity)
     {
         totalQuantity = newTotalQuantity;
     }
 
-    [[nodiscard]] model::Quantity getExecutedQuantity() const
+    [[nodiscard]] Quantity getExecutedQuantity() const
     {
         return executedQuantity;
     }
 
-    void setExecutedQuantity(const model::Quantity newExecutedQuantity)
+    void setExecutedQuantity(const Quantity newExecutedQuantity)
     {
         executedQuantity = newExecutedQuantity;
     }
 
-    [[nodiscard]] model::TimeInForce getTimeInForce() const
+    [[nodiscard]] TimeInForce getTimeInForce() const
     {
         return timeInForce;
     }
@@ -87,4 +87,4 @@ class OrderNode
         next = newNext;
     }
 };
-}; // namespace exchange::server::common::collections
+}; // namespace exchange::server

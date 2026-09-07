@@ -1,11 +1,11 @@
 #pragma once
 
-namespace exchange::server::archiver
+namespace exchange::server
 {
 /**
  * The starting point of the exchange archiver process.
  *
  * @return The exit code of the program.
  */
-int main() noexcept;
-} // namespace exchange::server::archiver
+int archiverProcessMain() noexcept;
+} // namespace exchange::server

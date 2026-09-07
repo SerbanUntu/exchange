@@ -8,7 +8,7 @@
 
 #include <grpcpp/grpcpp.h>
 
-namespace exchange::server::gateway
+namespace exchange::server
 {
 using namespace v1;
 
@@ -18,7 +18,7 @@ class GatewayImpl final : public Gateway::Service
     grpc::Status ListSecurities(grpc::ServerContext *ctx, const google::protobuf::Empty *request,
                                 ListSecuritiesResponse *response) override
     {
-        for (const auto &security : common::model::Universe::getSecurities())
+        for (const auto &security : common::Universe::getSecurities())
         {
             auto *securityPtr = response->add_securities();
             *securityPtr = security;
@@ -29,7 +29,7 @@ class GatewayImpl final : public Gateway::Service
     grpc::Status GetSecurityById(grpc::ServerContext *context, const GetSecurityByIdRequest *request,
                                  Security *response) override
     {
-        auto allSecurities = common::model::Universe::getSecurities();
+        auto allSecurities = common::Universe::getSecurities();
         // NOLINTNEXTLINE(readability-qualified-auto) - std::array::iterator is not a pointer on all platforms
         const auto it = std::ranges::find_if(allSecurities, [&request](const auto &security) {
             return security.security_id() == request->security_id();
@@ -45,7 +45,7 @@ class GatewayImpl final : public Gateway::Service
     grpc::Status GetSecurityBySymbol(grpc::ServerContext *context, const GetSecurityBySymbolRequest *request,
                                      Security *response) override
     {
-        auto allSecurities = common::model::Universe::getSecurities();
+        auto allSecurities = common::Universe::getSecurities();
         // NOLINTNEXTLINE(readability-qualified-auto) - std::array::iterator is not a pointer on all platforms
         const auto it = std::ranges::find_if(
             allSecurities, [&request](const auto &security) { return security.symbol() == request->symbol(); });
@@ -58,12 +58,12 @@ class GatewayImpl final : public Gateway::Service
     }
 };
 
-int main() noexcept
+int gatewayMain() noexcept
 {
     std::shared_ptr<spdlog::logger> LOG = nullptr;
     try
     {
-        LOG = common::util::LogService::getLogger(common::util::LogProducer::GATEWAY);
+        LOG = common::LogService::getLogger(common::LogProducer::GATEWAY);
         LOG->info("Starting the exchange server gateway.");
 
         const std::string address = "0.0.0.0:8989";
@@ -80,18 +80,18 @@ int main() noexcept
     }
     catch (const std::exception &err)
     {
-        common::util::reportException(LOG, err);
+        common::reportException(LOG, err);
         return 1;
     }
     catch (...)
     {
-        common::util::reportUnknownException(LOG);
+        common::reportUnknownException(LOG);
         return 1;
     }
 }
-} // namespace exchange::server::gateway
+} // namespace exchange::server
 
 int main()
 {
-    return exchange::server::gateway::main();
+    return exchange::server::gatewayMain();
 }

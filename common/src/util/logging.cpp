@@ -1,7 +1,7 @@
 #include <common/util/logging.hpp>
 #include <spdlog/sinks/stdout_color_sinks.h>
 
-namespace exchange::common::util
+namespace exchange::common
 {
 std::string LogService::producerToString(const LogProducer producer)
 {
@@ -78,4 +78,4 @@ void reportUnknownException(const std::shared_ptr<spdlog::logger> &logger) noexc
         std::fprintf(stderr, "%.*s\n", static_cast<int>(MSG.size()), MSG.data());
     }
 }
-} // namespace exchange::common::util
+} // namespace exchange::common

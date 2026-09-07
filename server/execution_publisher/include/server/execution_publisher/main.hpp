@@ -1,11 +1,11 @@
 #pragma once
 
-namespace exchange::server::execution
+namespace exchange::server
 {
 /**
  * The starting point of the execution data publisher.
  *
  * @return The exit code of the program.
  */
-int main() noexcept;
-} // namespace exchange::server::execution
+int executionPublisherMain() noexcept;
+} // namespace exchange::server

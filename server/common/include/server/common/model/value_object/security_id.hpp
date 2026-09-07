@@ -2,7 +2,7 @@
 #include <functional>
 #include <cstdint>
 
-namespace exchange::server::common::model
+namespace exchange::server
 {
 struct SecurityId
 {
@@ -16,11 +16,11 @@ struct SecurityId
         return value == other.value;
     }
 };
-} // namespace exchange::server::common::model
+} // namespace exchange::server
 
-template <> struct std::hash<exchange::server::common::model::SecurityId>
+template <> struct std::hash<exchange::server::SecurityId>
 {
-    std::size_t operator()(const exchange::server::common::model::SecurityId &id) const noexcept
+    std::size_t operator()(const exchange::server::SecurityId &id) const noexcept
     {
         return std::hash<uint32_t>{}(id.value);
     }

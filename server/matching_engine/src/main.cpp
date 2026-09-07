@@ -12,14 +12,12 @@
 
 #include <spdlog/logger.h>
 
-namespace exchange::server::matcher
+namespace exchange::server
 {
 
-std::vector<std::unique_ptr<common::model::Action>> processEvent(
-    const common::model::Event &event,
-    std::unordered_map<common::model::SecurityId, common::collections::OrderBook> &state)
+std::vector<std::unique_ptr<Action>> processEvent(const Event &event,
+                                                  std::unordered_map<SecurityId, OrderBook> &state)
 {
-    using namespace common::model;
     auto &orderBook = state.at(event.orderId.securityId);
     auto result{std::vector<std::unique_ptr<Action>>()};
 
@@ -65,30 +63,30 @@ std::vector<std::unique_ptr<common::model::Action>> processEvent(
     }
 }
 
-int main() noexcept
+int matchingEngineMain() noexcept
 {
-    namespace util = exchange::common::util;
+    using namespace exchange::common;
     std::shared_ptr<spdlog::logger> LOG = nullptr;
     try
     {
-        LOG = util::LogService::getLogger(util::LogProducer::MATCHING_ENGINE);
+        LOG = LogService::getLogger(LogProducer::MATCHING_ENGINE);
         LOG->info("Hello from the Matching Engine.");
         return 0;
     }
     catch (const std::exception &err)
     {
-        util::reportException(LOG, err);
+        reportException(LOG, err);
         return 1;
     }
     catch (...)
     {
-        util::reportUnknownException(LOG);
+        reportUnknownException(LOG);
         return 1;
     }
 }
-} // namespace exchange::server::matcher
+} // namespace exchange::server
 
 int main()
 {
-    return exchange::server::matcher::main();
+    return exchange::server::matchingEngineMain();
 }

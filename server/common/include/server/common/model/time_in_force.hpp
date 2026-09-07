@@ -1,7 +1,7 @@
 #pragma once
 #include <cstdint>
 
-namespace exchange::server::common::model
+namespace exchange::server
 {
 enum class TimeInForce : uint8_t
 {
@@ -9,4 +9,4 @@ enum class TimeInForce : uint8_t
     IOC,
     FOK
 };
-} // namespace exchange::server::common::model
+} // namespace exchange::server

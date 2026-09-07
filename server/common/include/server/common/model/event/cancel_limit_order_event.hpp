@@ -2,7 +2,7 @@
 
 #include "server/common/model/event/event.hpp"
 
-namespace exchange::server::common::model
+namespace exchange::server
 {
 struct CancelLimitOrderEvent : Event
 {
@@ -16,4 +16,4 @@ struct CancelLimitOrderEvent : Event
         return EventType::CANCEL_LIMIT_ORDER;
     }
 };
-} // namespace exchange::server::common::model
+} // namespace exchange::server
