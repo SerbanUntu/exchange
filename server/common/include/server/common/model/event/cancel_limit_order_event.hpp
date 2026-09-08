@@ -6,8 +6,7 @@ namespace exchange::server
 {
 struct CancelLimitOrderEvent : Event
 {
-
-    CancelLimitOrderEvent(const OrderId orderId, const AccountId accountId) : Event(orderId, accountId)
+    CancelLimitOrderEvent(const OrderId orderId) : Event(orderId)
     {
     }
 

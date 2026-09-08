@@ -11,16 +11,7 @@ struct Price
     {
     }
 
-    bool operator==(const Price &other) const
-    {
-        return value == other.value;
-    }
-
-    bool operator<(const Price &other) const
-    {
-        return value < other.value;
-
-    }
+    auto operator<=>(const Price &) const = default;
 };
 } // namespace exchange::server
 

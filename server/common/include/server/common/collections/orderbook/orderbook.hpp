@@ -1,44 +1,94 @@
 #pragma once
-#include "matched_order.hpp"
-#include "order_node.hpp"
-#include "price_node.hpp"
+#include "order.hpp"
+#include "trade.hpp"
+#include "server/common/model/order_type.hpp"
 #include "server/common/model/side.hpp"
+#include "server/common/model/time_in_force.hpp"
 #include "server/common/model/value_object/order_id.hpp"
 #include "server/common/model/value_object/price.hpp"
 
-#include <memory>
-#include <set>
-#include <unordered_map>
+#include <map>
 
 namespace exchange::server
 {
+using OrderBookMap = std::map<Price, std::list<Order>, std::function<bool(const Price &, const Price &)>>;
+using OrderLookupValue = std::pair<std::list<Order> *, std::list<Order>::iterator>;
+
 class OrderBook
 {
-    std::unordered_map<Price, std::unique_ptr<PriceNode>> buyLevels;
-    std::unordered_map<Price, std::unique_ptr<PriceNode>> sellLevels;
-    std::unordered_map<OrderId, std::unique_ptr<OrderNode>> orderMap;
-    std::set<Price> buyPriceSet;
-    std::set<Price> sellPriceSet;
+    OrderBookMap buyBook{std::greater{}};
+    OrderBookMap sellBook{std::less{}};
+    std::unordered_map<OrderId, OrderLookupValue> orderLookup;
+    OrderBook(const OrderBook &) = delete; // Would copy the lookup pointers causing errors
 
   public:
-    void addOrder(OrderId orderId, AccountId accountId, Side side, Price price, Quantity quantity,
-                  TimeInForce timeInForce) noexcept;
-    bool removeOrder(OrderId orderId, AccountId accountId) noexcept;
-    bool amendOrder(OrderId orderId, AccountId accountId, Quantity newQuantity) noexcept;
-    bool amendOrder(OrderId orderId, AccountId accountId, Price price) noexcept;
-    bool amendOrder(OrderId orderId, AccountId accountId, Quantity newQuantity,
-                    Price price) noexcept;
-    bool partiallyFillOrder(OrderId orderId, AccountId accountId, Quantity filledQuantity) noexcept;
+    enum class AmendOrderStatus : uint8_t
+    {
+        CANNOT_AMEND,
+        AMENDED_IN_PLACE,
+        AMENDED,
+        REMOVED
+    };
+    struct AddOrderResult
+    {
+        std::optional<Order> addedOrder;
+        std::vector<Trade> trades;
+    };
+    struct AmendOrderResult
+    {
+        AmendOrderStatus status;
+        AddOrderResult tradesAfterLosingPriority;
+    };
+    /**
+     * Try to match an order to what currently exists on the book, if possible,
+     * and then potentially add it to the book in the case of GTC limit orders.
+     *
+     * @param orderId The id of the incoming order
+     * @param side The side of the incoming order (BUY or SELL)
+     * @param price The price of the incoming order, if it is a limit order
+     * @param quantity The quantity of the incoming order
+     * @param timeInForce The time in force of the incoming order
+     * @param orderType Whether the incoming order is a limit order or a market order
+     *
+     * @return A list of matches performed between the incoming order and orders resting on the book, if any
+     */
+    AddOrderResult addOrder(OrderId orderId, Side side, std::optional<Price> price, Quantity quantity,
+                                TimeInForce timeInForce, OrderType orderType) noexcept;
 
     /**
+     * Remove a GTC limit order that is currently resting on the book.
      *
-     * @param side The side of the order book to match against (BUY or SELL)
-     * @param price The price to match against (accepts lower prices on the SELL book and higher prices on the BUY book)
-     * @param quantity The quantity that can be matched
-     * @param allOrNothing If true, no orders will be matched if the quantity cannot be fully matched
-     * @return A pair of matched orders and the remaining quantity that could not be matched
+     * @param orderId The id of the order to remove
+     * @return True if the order is resting on the book, false otherwise
      */
-    std::pair<std::vector<MatchedOrder>, Quantity> matchOrders(Side side, Price price,
-                                                              Quantity quantity, bool allOrNothing) noexcept;
+    bool removeOrder(OrderId orderId) noexcept;
+
+    /**
+     * Modify the quantity of a GTC limit order that is currently resting on the book.
+     * Specifying a quantity less than the original one does not reset time priority.
+     *
+     * @param orderId The id of the order to amend
+     * @param newQuantity The new total quantity of the order
+     */
+    AmendOrderStatus amendOrder(OrderId orderId, Quantity newQuantity) noexcept;
+
+    /**
+     * Modify the price of a GTC limit order that is currently resting on the book.
+     * Always resets time priority.
+     *
+     * @param orderId The id of the order to amend
+     * @param newPrice The new price of the order
+     */
+    AmendOrderResult amendOrder(OrderId orderId, Price newPrice) noexcept;
+
+    /**
+     * Modify the quantity and price of a GTC limit order that is currently resting on the book.
+     * Always resets time priority.
+     *
+     * @param orderId The id of the order to amend
+     * @param newQuantity The new total quantity of the order
+     * @param newPrice The new price of the order
+     */
+    AmendOrderResult amendOrder(OrderId orderId, Quantity newQuantity, Price newPrice) noexcept;
 };
 } // namespace exchange::server

@@ -11,11 +11,19 @@ struct Quantity
     {
     }
 
-    auto operator<=>(const Quantity& other) const = default;
+    auto operator<=>(const Quantity &other) const = default;
 
-    auto operator-(const Quantity& other) const
+    auto operator-(const Quantity &other) const
     {
         return Quantity(value - other.value);
+    }
+    void operator+=(const Quantity &other)
+    {
+        value += other.value;
+    }
+    void operator-=(const Quantity &other)
+    {
+        value -= other.value;
     }
 };
 } // namespace exchange::server

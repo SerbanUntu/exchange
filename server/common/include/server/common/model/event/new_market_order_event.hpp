@@ -11,8 +11,8 @@ struct NewMarketOrderEvent : Event
     const Side side;
     const Quantity quantity;
 
-    NewMarketOrderEvent(const OrderId orderId, const AccountId accountId, const Side side, const Quantity quantity)
-        : Event(orderId, accountId), side(side), quantity(quantity)
+    NewMarketOrderEvent(const OrderId orderId, const Side side, const Quantity quantity)
+        : Event(orderId), side(side), quantity(quantity)
     {
     }
 

@@ -3,15 +3,15 @@
 
 namespace exchange::server
 {
-struct OrderCancelledAction : Action
+struct OrderRemovedAction : Action
 {
-    OrderCancelledAction(const OrderId orderId, const AccountId accountId) : Action(orderId, accountId)
+    explicit OrderRemovedAction(const OrderId orderId) : Action(orderId)
     {
     }
 
     [[nodiscard]] ActionType getType() const override
     {
-        return ActionType::ORDER_CANCELLED;
+        return ActionType::ORDER_REMOVED;
     }
 };
 } // namespace exchange::server

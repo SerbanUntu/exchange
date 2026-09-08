@@ -15,9 +15,9 @@ struct NewLimitOrderEvent : Event
     const Price price;
     const TimeInForce tif;
 
-    NewLimitOrderEvent(const OrderId orderId, const AccountId accountId, const Side side, const Quantity quantity,
+    NewLimitOrderEvent(const OrderId orderId, const Side side, const Quantity quantity,
                        const Price price, const TimeInForce tif)
-        : Event(orderId, accountId), side(side), quantity(quantity), price(price), tif(tif)
+        : Event(orderId), side(side), quantity(quantity), price(price), tif(tif)
     {
     }
 

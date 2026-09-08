@@ -13,9 +13,9 @@ struct AmendLimitOrderEvent : Event
     const std::optional<Quantity> quantity;
     const std::optional<Price> price;
 
-    AmendLimitOrderEvent(const OrderId orderId, const AccountId accountId, const std::optional<Quantity> quantity,
+    AmendLimitOrderEvent(const OrderId orderId, const std::optional<Quantity> quantity,
                          const std::optional<Price> price)
-        : Event(orderId, accountId), quantity(quantity), price(price)
+        : Event(orderId), quantity(quantity), price(price)
     {
     }
 
