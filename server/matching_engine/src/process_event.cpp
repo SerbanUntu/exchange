@@ -10,6 +10,11 @@
 #include "server/common/model/event/new_limit_order_event.hpp"
 #include "server/common/model/event/new_market_order_event.hpp"
 
+#include <memory>
+#include <optional>
+#include <unordered_map>
+#include <vector>
+
 namespace exchange::server
 {
 std::vector<std::unique_ptr<Action>> processEvent(const Event &event, std::unordered_map<SecurityId, OrderBook> &state)

@@ -2,6 +2,9 @@
 
 #include <gtest/gtest.h>
 
+#include <cstdint>
+#include <optional>
+
 namespace exchange::server
 {
 namespace

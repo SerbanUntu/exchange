@@ -7,7 +7,14 @@
 #include "server/common/model/value_object/order_id.hpp"
 #include "server/common/model/value_object/price.hpp"
 
+#include <cstdint>
+#include <functional>
+#include <list>
 #include <map>
+#include <optional>
+#include <unordered_map>
+#include <utility>
+#include <vector>
 
 namespace exchange::server
 {

@@ -11,6 +11,12 @@
 
 #include <gtest/gtest.h>
 
+#include <cstdint>
+#include <memory>
+#include <optional>
+#include <unordered_map>
+#include <vector>
+
 namespace exchange::server
 {
 namespace

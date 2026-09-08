@@ -1,5 +1,10 @@
 #include "server/common/collections/orderbook/orderbook.hpp"
 
+#include <iterator>
+#include <optional>
+#include <utility>
+#include <vector>
+
 namespace exchange::server
 {
 // NOLINTNEXTLINE(bugprone-exception-escape)
