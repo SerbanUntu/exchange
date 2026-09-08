@@ -17,3 +17,5 @@ target_link_libraries(exchange-server-common
         exchange::common
         boost::boost
 )
+
+add_subdirectory(test)

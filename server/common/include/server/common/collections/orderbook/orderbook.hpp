@@ -19,9 +19,14 @@ class OrderBook
     OrderBookMap buyBook{std::greater{}};
     OrderBookMap sellBook{std::less{}};
     std::unordered_map<OrderId, OrderLookupValue> orderLookup;
-    OrderBook(const OrderBook &) = delete; // Would copy the lookup pointers causing errors
 
   public:
+    OrderBook() = default;
+    OrderBook(const OrderBook &) = delete; // Would copy the lookup pointers causing errors
+    OrderBook &operator=(const OrderBook &) = delete;
+    OrderBook(OrderBook &&) = default;
+    OrderBook &operator=(OrderBook &&) = default;
+
     enum class AmendOrderStatus : uint8_t
     {
         CANNOT_AMEND,
@@ -53,7 +58,7 @@ class OrderBook
      * @return A list of matches performed between the incoming order and orders resting on the book, if any
      */
     AddOrderResult addOrder(OrderId orderId, Side side, std::optional<Price> price, Quantity quantity,
-                                TimeInForce timeInForce, OrderType orderType) noexcept;
+                            TimeInForce timeInForce, OrderType orderType) noexcept;
 
     /**
      * Remove a GTC limit order that is currently resting on the book.
@@ -83,7 +88,8 @@ class OrderBook
 
     /**
      * Modify the quantity and price of a GTC limit order that is currently resting on the book.
-     * Always resets time priority.
+     * Resets time priority, unless the price is unchanged and the quantity only decreases,
+     * which is treated the same as amending the quantity on its own.
      *
      * @param orderId The id of the order to amend
      * @param newQuantity The new total quantity of the order

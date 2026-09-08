@@ -159,6 +159,10 @@ OrderBook::AmendOrderResult OrderBook::amendOrder(OrderId orderId, const Quantit
         removeOrder(orderId);
         return {AmendOrderStatus::REMOVED, {}};
     }
+    if (newPrice == orderIt->price && newQuantity < orderIt->totalQuantity)
+    {
+        return {amendOrder(orderId, newQuantity), {}};
+    }
 
     const auto order = *orderIt;
     removeOrder(orderId);
