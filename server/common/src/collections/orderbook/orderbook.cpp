@@ -21,7 +21,8 @@ OrderBook::AddOrderResult OrderBook::addOrder(OrderId orderId, const Side side, 
         auto bookIt = matchingBook.begin();
         while (bookIt != matchingBook.end())
         {
-            if ((side == Side::BUY && bookIt->first > *price) || (side == Side::SELL && bookIt->first < *price))
+            if (price.has_value() &&
+                ((side == Side::BUY && bookIt->first > *price) || (side == Side::SELL && bookIt->first < *price)))
             {
                 break;
             }
@@ -43,7 +44,7 @@ OrderBook::AddOrderResult OrderBook::addOrder(OrderId orderId, const Side side, 
     auto bookIt = matchingBook.begin();
     while (bookIt != matchingBook.end() && remainingQuantity > Quantity{0})
     {
-        if (orderType == OrderType::LIMIT &&
+        if (orderType == OrderType::LIMIT && price.has_value() &&
             ((side == Side::BUY && bookIt->first > *price) || (side == Side::SELL && bookIt->first < *price)))
         {
             break;
@@ -77,14 +78,15 @@ OrderBook::AddOrderResult OrderBook::addOrder(OrderId orderId, const Side side, 
             ++bookIt;
         }
     }
-    if (timeInForce == TimeInForce::GTC && remainingQuantity > Quantity{0})
+    if (timeInForce == TimeInForce::GTC && remainingQuantity > Quantity{0} && price.has_value())
     {
+        const auto restingPrice = *price;
         OrderBookMap &restingBook = side == Side::BUY ? buyBook : sellBook;
-        auto &priceLevel = restingBook[*price];
-        priceLevel.emplace_back(orderId, *price, quantity, quantity - remainingQuantity, side);
+        auto &priceLevel = restingBook[restingPrice];
+        priceLevel.emplace_back(orderId, restingPrice, quantity, quantity - remainingQuantity, side);
         orderLookup.insert_or_assign(orderId, OrderLookupValue{&priceLevel, std::prev(priceLevel.end())});
         return {.addedOrder = Order{.id = orderId,
-                                    .price = *price,
+                                    .price = restingPrice,
                                     .totalQuantity = quantity,
                                     .filledQuantity = quantity - remainingQuantity,
                                     .side = side},

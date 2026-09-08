@@ -66,7 +66,7 @@ std::vector<std::unique_ptr<Action>> processEvent(const Event &event, std::unord
                                                                 : orderBook.amendOrder(e.orderId, *e.price);
             if (amendResult.status == OrderBook::AmendOrderStatus::CANNOT_AMEND)
                 break;
-            if (amendResult.status == OrderBook::AmendOrderStatus::AMENDED_IN_PLACE)
+            if (amendResult.status == OrderBook::AmendOrderStatus::AMENDED_IN_PLACE && e.quantity.has_value())
             {
                 result.emplace_back(std::make_unique<OrderDownsizedAction>(e.orderId, *e.quantity));
                 break;
@@ -93,7 +93,7 @@ std::vector<std::unique_ptr<Action>> processEvent(const Event &event, std::unord
                                                                        addedOrder->filledQuantity, addedOrder->side));
             }
         }
-        else
+        else if (e.quantity.has_value())
         {
             switch (orderBook.amendOrder(e.orderId, *e.quantity))
             {
