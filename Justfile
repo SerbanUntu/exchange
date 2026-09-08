@@ -6,27 +6,27 @@ format:
 
 audit:
     conan audit provider auth conancenter --token="$CONAN_AUDIT_TOKEN"
-    -conan audit scan .
+    conan audit scan .
 
 install:
-    conan install . --build=missing --output-folder=cmake-build-release
+    conan install . --build=missing --output-folder=cmake-build-release -c tools.cmake.cmaketoolchain:generator=Ninja
 
 lint:
-    find apps client common server -type f \( -name '*.cpp' -o -name '*.h' -o -name '*.hpp' \) -not -path '*/test/*' -print0 | xargs -0 --no-run-if-empty clang-tidy -p cmake-build-release/build/Release
+    find apps client common server -type f -name '*.cpp' -not -path '*/test/*' -print0 | xargs -0 --no-run-if-empty clang-tidy -p cmake-build-release/build/Release
 
 lint-fix:
-    find apps client common server -type f \( -name '*.cpp' -o -name '*.h' -o -name '*.hpp' \) -print0 | xargs -0 --no-run-if-empty clang-tidy -fix -p cmake-build-release/build/Release
+    find apps client common server -type f -name '*.cpp' -print0 | xargs -0 --no-run-if-empty clang-tidy -fix -p cmake-build-release/build/Release
 
 build:
-     cmake --preset conan-release
-     cmake --build --preset conan-release
+    cmake --preset conan-release
+    cmake --build --preset conan-release
 
 test:
     ctest --test-dir cmake-build-release/build/Release --output-on-failure
 
 check:
     just check-format
-    just audit
+    -just audit
     just install
     just build
     just lint

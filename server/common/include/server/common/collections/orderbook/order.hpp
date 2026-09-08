@@ -18,7 +18,7 @@ struct Order
     Quantity filledQuantity;
     Side side;
 
-    Quantity remainingQuantity() const noexcept
+    [[nodiscard]] Quantity remainingQuantity() const noexcept
     {
         return totalQuantity - filledQuantity;
     }

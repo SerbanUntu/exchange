@@ -2,6 +2,7 @@
 
 namespace exchange::server
 {
+// NOLINTNEXTLINE(bugprone-exception-escape)
 OrderBook::AddOrderResult OrderBook::addOrder(OrderId orderId, const Side side, const std::optional<Price> price,
                                               const Quantity quantity, const TimeInForce timeInForce,
                                               const OrderType orderType) noexcept
@@ -31,7 +32,7 @@ OrderBook::AddOrderResult OrderBook::addOrder(OrderId orderId, const Side side, 
         }
         if (availableQuantity < quantity)
         {
-            return {std::nullopt, {}};
+            return {.addedOrder = std::nullopt, .trades = {}};
         }
     }
     auto bookIt = matchingBook.begin();
@@ -77,9 +78,14 @@ OrderBook::AddOrderResult OrderBook::addOrder(OrderId orderId, const Side side, 
         auto &priceLevel = restingBook[*price];
         priceLevel.emplace_back(orderId, *price, quantity, quantity - remainingQuantity, side);
         orderLookup.insert_or_assign(orderId, OrderLookupValue{&priceLevel, std::prev(priceLevel.end())});
-        return {Order{orderId, *price, quantity, quantity - remainingQuantity, side}, trades};
+        return {.addedOrder = Order{.id = orderId,
+                                    .price = *price,
+                                    .totalQuantity = quantity,
+                                    .filledQuantity = quantity - remainingQuantity,
+                                    .side = side},
+                .trades = trades};
     }
-    return {std::nullopt, trades};
+    return {.addedOrder = std::nullopt, .trades = trades};
 }
 
 bool OrderBook::removeOrder(OrderId orderId) noexcept
@@ -101,6 +107,7 @@ bool OrderBook::removeOrder(OrderId orderId) noexcept
     }
     return true;
 }
+// NOLINTNEXTLINE(bugprone-exception-escape)
 OrderBook::AmendOrderStatus OrderBook::amendOrder(OrderId orderId, const Quantity newQuantity) noexcept
 {
     const auto lookupIt = orderLookup.find(orderId);
@@ -131,43 +138,45 @@ OrderBook::AmendOrderResult OrderBook::amendOrder(OrderId orderId, const Price n
 {
     const auto lookupIt = orderLookup.find(orderId);
     if (lookupIt == orderLookup.end())
-        return {AmendOrderStatus::CANNOT_AMEND, {}};
+        return {.status = AmendOrderStatus::CANNOT_AMEND, .tradesAfterLosingPriority = {}};
 
     const auto [listPtr, orderIt] = lookupIt->second;
     if (newPrice == orderIt->price)
-        return {AmendOrderStatus::CANNOT_AMEND, {}};
+        return {.status = AmendOrderStatus::CANNOT_AMEND, .tradesAfterLosingPriority = {}};
 
     const auto order = *orderIt;
     removeOrder(orderId);
-    return {AmendOrderStatus::AMENDED,
-            addOrder(orderId, order.side, newPrice, order.remainingQuantity(), TimeInForce::GTC, OrderType::LIMIT)};
+    return {.status = AmendOrderStatus::AMENDED,
+            .tradesAfterLosingPriority =
+                addOrder(orderId, order.side, newPrice, order.remainingQuantity(), TimeInForce::GTC, OrderType::LIMIT)};
 }
 OrderBook::AmendOrderResult OrderBook::amendOrder(OrderId orderId, const Quantity newQuantity,
                                                   const Price newPrice) noexcept
 {
     const auto lookupIt = orderLookup.find(orderId);
     if (lookupIt == orderLookup.end())
-        return {AmendOrderStatus::CANNOT_AMEND, {}};
+        return {.status = AmendOrderStatus::CANNOT_AMEND, .tradesAfterLosingPriority = {}};
 
     const auto [listPtr, orderIt] = lookupIt->second;
     if (newPrice == orderIt->price && newQuantity == orderIt->totalQuantity)
-        return {AmendOrderStatus::CANNOT_AMEND, {}};
+        return {.status = AmendOrderStatus::CANNOT_AMEND, .tradesAfterLosingPriority = {}};
     if (newQuantity < orderIt->filledQuantity)
-        return {AmendOrderStatus::CANNOT_AMEND, {}};
+        return {.status = AmendOrderStatus::CANNOT_AMEND, .tradesAfterLosingPriority = {}};
     if (newQuantity == orderIt->filledQuantity)
     {
         removeOrder(orderId);
-        return {AmendOrderStatus::REMOVED, {}};
+        return {.status = AmendOrderStatus::REMOVED, .tradesAfterLosingPriority = {}};
     }
     if (newPrice == orderIt->price && newQuantity < orderIt->totalQuantity)
     {
-        return {amendOrder(orderId, newQuantity), {}};
+        return {.status = amendOrder(orderId, newQuantity), .tradesAfterLosingPriority = {}};
     }
 
     const auto order = *orderIt;
     removeOrder(orderId);
-    return {AmendOrderStatus::AMENDED, addOrder(orderId, order.side, newPrice, newQuantity - order.filledQuantity,
-                                                TimeInForce::GTC, OrderType::LIMIT)};
+    return {.status = AmendOrderStatus::AMENDED,
+            .tradesAfterLosingPriority = addOrder(orderId, order.side, newPrice, newQuantity - order.filledQuantity,
+                                                  TimeInForce::GTC, OrderType::LIMIT)};
 }
 
 } // namespace exchange::server

@@ -8,8 +8,7 @@ struct OrderDownsizedAction : Action
 {
     const Quantity newQuantity;
 
-    OrderDownsizedAction(const OrderId orderId, const Quantity newQuantity)
-        : Action(orderId), newQuantity(newQuantity)
+    OrderDownsizedAction(const OrderId orderId, const Quantity newQuantity) : Action(orderId), newQuantity(newQuantity)
     {
     }
 

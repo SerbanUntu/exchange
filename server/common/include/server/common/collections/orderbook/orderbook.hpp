@@ -24,8 +24,8 @@ class OrderBook
     OrderBook() = default;
     OrderBook(const OrderBook &) = delete; // Would copy the lookup pointers causing errors
     OrderBook &operator=(const OrderBook &) = delete;
-    OrderBook(OrderBook &&) = default;
-    OrderBook &operator=(OrderBook &&) = default;
+    OrderBook(OrderBook &&) noexcept = default;
+    OrderBook &operator=(OrderBook &&) noexcept = default;
 
     enum class AmendOrderStatus : uint8_t
     {
