@@ -1,6 +1,7 @@
 ---
 Checks: >
   bugprone-*,
+  -bugprone-easily-swappable-parameters,
   performance-*,
   modernize-*,
   -modernize-use-trailing-return-type,
@@ -10,5 +11,5 @@ Checks: >
   -readability-braces-around-statements,
   -readability-function-cognitive-complexity,
 WarningsAsErrors: '*'
-HeaderFilterRegex: '^$' # Only report issues in the translation units of this project.
+HeaderFilterRegex: '[/\\]include[/\\]' # Only report issues in this project's own sources and headers.
 FormatStyle: file

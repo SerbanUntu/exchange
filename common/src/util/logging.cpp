@@ -1,16 +1,28 @@
 #include <common/util/logging.hpp>
 #include <spdlog/sinks/stdout_color_sinks.h>
 
-namespace exchange::common::util
+namespace exchange::common
 {
 std::string LogService::producerToString(const LogProducer producer)
 {
     switch (producer)
     {
+    case LogProducer::ARCHIVER:
+        return "archive";
+    case LogProducer::CANDLESTICK_PUBLISHER:
+        return "candles";
     case LogProducer::CLIENT:
         return "client";
+    case LogProducer::EXECUTION_PUBLISHER:
+        return "exec";
     case LogProducer::GATEWAY:
         return "gateway";
+    case LogProducer::MATCHING_ENGINE:
+        return "matcher";
+    case LogProducer::ORDER_MANAGER:
+        return "ord_man";
+    case LogProducer::ORDERBOOK_PUBLISHER:
+        return "book";
     default:
         [[unlikely]] throw std::logic_error("Invalid LogProducer value: " + std::to_string(static_cast<int>(producer)));
     }
@@ -66,4 +78,4 @@ void reportUnknownException(const std::shared_ptr<spdlog::logger> &logger) noexc
         std::fprintf(stderr, "%.*s\n", static_cast<int>(MSG.size()), MSG.data());
     }
 }
-} // namespace exchange::common::util
+} // namespace exchange::common

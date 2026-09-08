@@ -5,7 +5,7 @@ PROJECT_NAME           = "exchange"
 PROJECT_BRIEF          = "Low-latency exchange in C++"
 OUTPUT_DIRECTORY       = docs
 
-INPUT                  = client common server
+INPUT                  = apps client common server
 FILE_PATTERNS          = *.cpp *.h *.hpp
 RECURSIVE              = YES
 EXTRACT_ALL            = YES

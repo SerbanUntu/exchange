@@ -1,6 +1,6 @@
 #include "common/model/universe.hpp"
 
-namespace exchange::common::model
+namespace exchange::common
 {
 const std::array<Security, Universe::NUMBER_OF_SECURITIES> &Universe::getSecurities()
 {
@@ -27,4 +27,4 @@ const std::array<Security, Universe::NUMBER_OF_SECURITIES> &Universe::getSecurit
 
     return securities;
 }
-} // namespace exchange::common::model
+} // namespace exchange::common

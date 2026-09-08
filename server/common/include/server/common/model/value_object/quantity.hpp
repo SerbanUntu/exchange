@@ -1,0 +1,29 @@
+#pragma once
+
+#include <cstdint>
+#include <compare>
+namespace exchange::server
+{
+struct Quantity
+{
+    uint64_t value;
+    explicit Quantity(const uint64_t value) : value(value)
+    {
+    }
+
+    auto operator<=>(const Quantity &other) const = default;
+
+    auto operator-(const Quantity &other) const
+    {
+        return Quantity(value - other.value);
+    }
+    void operator+=(const Quantity &other)
+    {
+        value += other.value;
+    }
+    void operator-=(const Quantity &other)
+    {
+        value -= other.value;
+    }
+};
+} // namespace exchange::server

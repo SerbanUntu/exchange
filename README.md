@@ -9,13 +9,14 @@ Documentation about the public gRPC API of the exchange can be found in [the ded
 ### Dependencies
 
 - [CMake](https://cmake.org/download/) >= 4.2
+- [Ninja](https://ninja-build.org/)
 - [Python](https://www.python.org/downloads/) + [pip](https://pip.pypa.io/) (used to install Conan)
 - [Conan](https://conan.io/) 2.x (`pip install conan`)
 - A C++20 compiler
 
 #### Windows
 
-On Windows, I recommend **MSVC**, to avoid issues with Conan. Install it via the [Visual Studio Installer](https://visualstudio.microsoft.com/downloads/) with the "Desktop development with C++" workload.
+On Windows, I recommend **MSVC**, to avoid issues with Conan. Install it via the [Visual Studio Installer](https://visualstudio.microsoft.com/downloads/) with the "Desktop development with C++" package.
 
 When selecting individual components, install the **MSVC v143 (VS 2022) build tools** specifically, rather than the newer v144 toolset. Most prebuilt binary packages on [ConanCenter](https://conan.io/center) are currently built against v143, so using it avoids Conan falling back to `--build=missing` and rebuilding dependencies from source.
 
@@ -70,7 +71,7 @@ find client common server -type f \( -name '*.cpp' -o -name '*.h' -o -name '*.hp
 
 #### Linting
 
-Requires the project to have been built first (see [Setup](#setup)), since clang-tidy reads the compile commands from the build output.
+Requires the project to have been built first (see [Building](#building)), since clang-tidy reads the compile commands from the build output.
 
 ```sh
 find client common server -type f \( -name '*.cpp' -o -name '*.h' -o -name '*.hpp' \) -not -path '*/test/*' -print0 | xargs -0 --no-run-if-empty clang-tidy -p cmake-build-release/build/Release

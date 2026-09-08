@@ -1,8 +1,10 @@
 add_executable(exchange-common-test)
 add_executable(exchange::common::test ALIAS exchange-common-test)
+
+file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS *.cpp)
+
 target_sources(exchange-common-test
-        PRIVATE
-        util/logging.cpp
+        PRIVATE ${SOURCES}
 )
 
 target_link_libraries(exchange-common-test

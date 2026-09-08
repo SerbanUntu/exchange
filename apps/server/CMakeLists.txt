@@ -1,0 +1,7 @@
+add_subdirectory(archiver_process)
+add_subdirectory(candlestick_publisher)
+add_subdirectory(execution_publisher)
+add_subdirectory(gateway)
+add_subdirectory(matching_engine)
+add_subdirectory(order_manager)
+add_subdirectory(orderbook_publisher)
