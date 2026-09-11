@@ -35,7 +35,7 @@ message Execution {
 
 message CandleDataRequest {
   uint32 security_id = 1;
-  uint32 resolution_minutes = 2;
+  uint32 resolution_seconds = 2;
   optional google.protobuf.Timestamp start_time = 3;
   optional google.protobuf.Timestamp end_time = 4;
 }

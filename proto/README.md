@@ -16,7 +16,7 @@ This document provides a high-level overview of the components and conventions o
 - Prices are in cents.
 - Lot size is 1 share.
 - Tick size is 1 cent.
-- Candle base resolution is 1 minute. A `resolution_minutes` of N means N minutes per candle.
+- Candle base resolution is 1 second. A `resolution_seconds` of N means N seconds per candle.
 
 ## Usage details
 
