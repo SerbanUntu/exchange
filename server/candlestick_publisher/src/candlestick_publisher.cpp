@@ -40,6 +40,7 @@ void CandlestickPublisher::processTrade(const TradeAction &tradeAction, const sy
     }
     else
     {
+        if (lastCandle.empty()) lastCandle.open = tradeAction.price;
         lastCandle.high = std::max(lastCandle.high, tradeAction.price);
         lastCandle.low = std::min(lastCandle.low, tradeAction.price);
         lastCandle.close = tradeAction.price;
@@ -50,7 +51,7 @@ void CandlestickPublisher::processTrade(const TradeAction &tradeAction, const sy
 std::vector<Candle> CandlestickPublisher::getCandles(const sys_seconds start, const sys_seconds end,
                                                      const seconds resolution) const
 {
-    if (timestampToIndex(start) >= candles.size())
+    if (timestampToIndex(start) >= static_cast<int64_t>(candles.size()))
         return {};
     std::vector<Candle> result;
 

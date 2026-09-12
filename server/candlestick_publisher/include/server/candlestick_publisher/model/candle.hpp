@@ -9,8 +9,8 @@ namespace exchange::server
 struct Candle
 {
     Price open{0};
-    Price high{0};
-    Price low{0};
+    Price high{std::numeric_limits<Price>::min()};
+    Price low{std::numeric_limits<Price>::max()};
     Price close{0};
     Quantity volume{0};
     std::chrono::sys_seconds start{};
