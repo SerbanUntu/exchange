@@ -6,7 +6,8 @@ namespace exchange::server
 {
 struct Price
 {
-    uint64_t value;
+    uint64_t value{};
+    constexpr Price() = default;
     constexpr explicit Price(const uint64_t value) : value(value)
     {
     }

@@ -1,24 +1,13 @@
 #pragma once
 
 #include "server/common/model/side.hpp"
-#include "server/common/model/event/event.hpp"
 #include "server/common/model/value_object/quantity.hpp"
 
 namespace exchange::server
 {
-struct NewMarketOrderEvent : Event
+struct NewMarketOrderEvent
 {
-    const Side side;
-    const Quantity quantity;
-
-    NewMarketOrderEvent(const OrderId orderId, const Side side, const Quantity quantity)
-        : Event(orderId), side(side), quantity(quantity)
-    {
-    }
-
-    [[nodiscard]] EventType getType() const override
-    {
-        return EventType::NEW_MARKET_ORDER;
-    }
+    Side side;
+    Quantity quantity;
 };
 } // namespace exchange::server

@@ -40,7 +40,8 @@ void CandlestickPublisher::processTrade(const TradeAction &tradeAction, const sy
     }
     else
     {
-        if (lastCandle.empty()) lastCandle.open = tradeAction.price;
+        if (lastCandle.empty())
+            lastCandle.open = tradeAction.price;
         lastCandle.high = std::max(lastCandle.high, tradeAction.price);
         lastCandle.low = std::min(lastCandle.low, tradeAction.price);
         lastCandle.close = tradeAction.price;

@@ -1,27 +1,15 @@
 #pragma once
 
-#include "server/common/model/event/event.hpp"
 #include "server/common/model/value_object/price.hpp"
 #include "server/common/model/value_object/quantity.hpp"
 
-#include <optional>
-
 namespace exchange::server
 {
-struct AmendLimitOrderEvent : Event
+struct AmendLimitOrderEvent
 {
-    const std::optional<Quantity> quantity;
-    const std::optional<Price> price;
-
-    AmendLimitOrderEvent(const OrderId orderId, const std::optional<Quantity> quantity,
-                         const std::optional<Price> price)
-        : Event(orderId), quantity(quantity), price(price)
-    {
-    }
-
-    [[nodiscard]] EventType getType() const override
-    {
-        return EventType::AMEND_LIMIT_ORDER;
-    }
+    Quantity quantity;
+    Price price;
+    bool isQuantityAmended;
+    bool isPriceAmended;
 };
 } // namespace exchange::server

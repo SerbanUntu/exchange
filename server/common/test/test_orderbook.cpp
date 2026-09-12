@@ -13,7 +13,7 @@ OrderId makeOrderId(const uint8_t seed)
 {
     boost::uuids::uuid uuid{};
     uuid.data[0] = seed;
-    return OrderId{uuid, SecurityId{1}};
+    return OrderId{uuid};
 }
 
 OrderBook::AddOrderResult addGtc(OrderBook &book, const OrderId orderId, const Side side, const uint64_t price,

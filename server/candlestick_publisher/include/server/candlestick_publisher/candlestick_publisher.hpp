@@ -47,6 +47,6 @@ class CandlestickPublisher
      * returned.
      */
     [[nodiscard]] std::vector<Candle> getCandles(std::chrono::sys_seconds start, std::chrono::sys_seconds end,
-                                   std::chrono::seconds resolution) const;
+                                                 std::chrono::seconds resolution) const;
 };
 } // namespace exchange::server

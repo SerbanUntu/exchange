@@ -7,7 +7,8 @@ namespace exchange::server
 {
 struct Quantity
 {
-    uint64_t value;
+    uint64_t value{};
+    constexpr Quantity() = default;
     constexpr explicit Quantity(const uint64_t value) : value(value)
     {
     }

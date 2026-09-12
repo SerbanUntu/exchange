@@ -7,7 +7,7 @@ namespace exchange::server
 template <TriviallyCopyable T> class MPSCQueue
 {
   public:
-    T pop() noexcept; // blocking
+    [[nodiscard]] T pop() noexcept; // blocking
     void push(const T &item) noexcept;
 };
 
