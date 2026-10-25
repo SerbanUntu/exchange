@@ -16,4 +16,5 @@ target_link_libraries(exchange-server-candlestick
         PUBLIC
         exchange::common
         exchange::server::common
+        boost::boost
 )

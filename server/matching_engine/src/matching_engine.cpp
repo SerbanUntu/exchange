@@ -27,6 +27,15 @@ MatchingEngine::MatchingEngine(MPSCQueue<Event> &inQueue, SPMCQueue<Action> &out
     }
 }
 
+void MatchingEngine::loop()
+{
+    const auto event = inQueue.pop();
+    for (const auto action : processEvent(event))
+    {
+        outQueue.push(action);
+    }
+}
+
 std::vector<Action> MatchingEngine::processEvent(const Event &event)
 {
     auto &orderBook = state.at(event.header.securityId);

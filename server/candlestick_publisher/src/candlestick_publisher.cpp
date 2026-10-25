@@ -1,5 +1,7 @@
 #include "server/candlestick_publisher/candlestick_publisher.hpp"
 
+#include "common/util/overloads.hpp"
+
 namespace exchange::server
 {
 using namespace std::chrono;
@@ -20,9 +22,24 @@ const Candle &CandlestickPublisher::candleAt(const sys_seconds timestamp) const
     return candles[timestampToIndex(timestamp)];
 }
 
-CandlestickPublisher::CandlestickPublisher()
-    : candles{{.start{time_point_cast<seconds>(system_clock::now())}}}, inMemoryStart{candles[0].start}
+CandlestickPublisher::CandlestickPublisher(SPMCQueue<Action> &inQueue)
+    : inQueue(inQueue), candles{{.start{time_point_cast<seconds>(system_clock::now())}}},
+      inMemoryStart{candles[0].start}
 {
+}
+
+void CandlestickPublisher::loop()
+{
+    const auto action = inQueue.pop();
+
+    std::visit(
+        overloads{
+            [&](const TradeAction &tradeAction) {
+                processTrade(tradeAction, time_point_cast<seconds>(action.header.timestamp));
+            },
+            [](const auto &) {}
+        },
+        action.body);
 }
 
 void CandlestickPublisher::processTrade(const TradeAction &tradeAction, const sys_seconds timestamp) noexcept

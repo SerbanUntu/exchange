@@ -16,6 +16,7 @@ target_link_libraries(exchange-server-matching-engine
         PUBLIC
         exchange::common
         exchange::server::common
+        boost::boost
 )
 
 add_subdirectory(test)
