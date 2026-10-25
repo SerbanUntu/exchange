@@ -21,7 +21,6 @@ jobs:
 
   audit:
     runs-on: ubuntu-latest
-    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
 
@@ -32,6 +31,7 @@ jobs:
         run: conan profile detect --force
 
       - name: Audit dependencies
+        continue-on-error: true
         env:
           CONAN_AUDIT_TOKEN: ${{ secrets.CONAN_AUDIT_TOKEN }}
         run: |
@@ -81,9 +81,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Ubuntu 24.04 runners use more ASLR entropy than the sanitizer runtimes support
-      - name: Reduce ASLR entropy
-        if: matrix.sanitizers != ''
+      # Ubuntu 24.04 runners use more Address Space Layout Randomization than the sanitizer runtimes support
+      - name: Reduce ASLR randomness
+        if: matrix.sanitizers != '' && !env.ACT
         run: sudo sysctl vm.mmap_rnd_bits=28
 
       - name: Build
@@ -123,7 +123,7 @@ jobs:
         run: gcovr --cobertura coverage.xml
 
       - name: Upload coverage to Codecov
-        if: ${{ !cancelled() && hashFiles('coverage.xml') != '' }}
+        if: ${{ !env.ACT && !cancelled() && hashFiles('coverage.xml') != '' }}
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}

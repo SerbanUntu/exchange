@@ -38,7 +38,7 @@ check:
     just test
 
 check-pipeline:
-    act -j build -P ubuntu-latest=catthehacker/ubuntu:full-latest --secret CONAN_AUDIT_TOKEN="$CONAN_AUDIT_TOKEN"
+    act push -W .github/workflows/build.yml -P ubuntu-latest=catthehacker/ubuntu:full-latest --secret CONAN_AUDIT_TOKEN="$CONAN_AUDIT_TOKEN"
 
 fix:
     just format

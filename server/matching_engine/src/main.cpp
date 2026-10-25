@@ -17,11 +17,14 @@ namespace exchange::server
 
 int matchingEngineMain() noexcept
 {
-    common::pinToCore();
     std::shared_ptr<spdlog::logger> LOG = nullptr;
     try
     {
         LOG = common::LogService::getLogger(common::LogProducer::MATCHING_ENGINE);
+        if (!common::pinToCore())
+        {
+            LOG->warn("Could not pin the matching engine to a single CPU core");
+        }
 
         SharedMemory sharedMemory(true);
 
