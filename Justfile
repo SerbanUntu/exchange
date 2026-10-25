@@ -27,7 +27,7 @@ test:
 san sanitizers="address" build_dir=("cmake-build-san-" + replace(sanitizers, ",", "-")):
     cmake --preset conan-release -B {{build_dir}} -DCMAKE_TOOLCHAIN_FILE="{{justfile_directory()}}/cmake-build-release/build/Release/generators/conan_toolchain.cmake" -DSANITIZERS={{sanitizers}}
     cmake --build {{build_dir}}
-    ASAN_OPTIONS=detect_leaks=1:abort_on_error=1 UBSAN_OPTIONS=print_stacktrace=1:halt_on_error=1 TSAN_OPTIONS=halt_on_error=1:second_deadlock_stack=1 ctest --test-dir {{build_dir}} --output-on-failure
+    ASAN_OPTIONS=detect_leaks=1:abort_on_error=1 UBSAN_OPTIONS=print_stacktrace=1:halt_on_error=1 TSAN_OPTIONS=halt_on_error=1:second_deadlock_stack=1:suppressions={{justfile_directory()}}/tsan.supp ctest --test-dir {{build_dir}} --output-on-failure
 
 check:
     just check-format

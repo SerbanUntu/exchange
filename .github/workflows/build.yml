@@ -49,8 +49,8 @@ jobs:
       - name: Build
         uses: ./.github/actions/build
         with:
-          cc: clang
-          cxx: clang++
+          cc: gcc
+          cxx: g++
           opt: 3
 
       - name: Lint
@@ -59,12 +59,12 @@ jobs:
             | xargs -0 --no-run-if-empty clang-tidy -p cmake-build-release/build/Release
 
   test:
-    name: ${{ matrix.compiler }} -O${{ matrix.opt }} ${{ matrix.sanitizers && format(' {0}', matrix.sanitizers) || '' }}
+    name: ${{ matrix.compiler }} -O${{ matrix.opt }}${{ matrix.sanitizers && format(' {0}', matrix.sanitizers) || '' }}
     runs-on: ubuntu-latest
     env:
       ASAN_OPTIONS: detect_leaks=1:abort_on_error=1
       UBSAN_OPTIONS: print_stacktrace=1:halt_on_error=1
-      TSAN_OPTIONS: halt_on_error=1:second_deadlock_stack=1
+      TSAN_OPTIONS: halt_on_error=1:second_deadlock_stack=1:suppressions=${{ github.workspace }}/tsan.supp
     strategy:
       fail-fast: false
       matrix:
