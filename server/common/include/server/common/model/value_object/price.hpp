@@ -1,6 +1,8 @@
 #pragma once
 #include <functional>
 #include <cstdint>
+#include <compare>
+#include <limits>
 
 namespace exchange::server
 {

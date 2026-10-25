@@ -14,19 +14,18 @@
 namespace exchange::server
 {
 
-inline SharedMemory createSharedMemory()
-{
-    SharedMemory sharedMemory{true};
-    sharedMemory.get().construct<std::array<std::byte, SharedMemory::mpscTotalObjectSize>>(SharedMemory::mpscName)();
-    sharedMemory.get().construct<std::array<std::byte, SharedMemory::spmcTotalObjectSize>>(SharedMemory::spmcName)();
-    return sharedMemory;
-}
-
 class SharedMemoryTest : public testing::Test
 {
   protected:
-    SharedMemory::Deleter sharedMemoryDeleter;
-    SharedMemory sharedMemory = createSharedMemory();
+    SharedMemory sharedMemory{true, "TestIpcSharedMemory"};
+
+    SharedMemoryTest()
+    {
+        sharedMemory.get().construct<std::array<std::byte, SharedMemory::mpscTotalObjectSize>>(
+            SharedMemory::mpscName)();
+        sharedMemory.get().construct<std::array<std::byte, SharedMemory::spmcTotalObjectSize>>(
+            SharedMemory::spmcName)();
+    }
 };
 
 inline OrderId makeOrderId(const uint8_t seed)

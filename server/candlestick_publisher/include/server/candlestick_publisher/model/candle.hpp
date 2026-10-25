@@ -3,6 +3,7 @@
 #include "server/common/model/value_object/price.hpp"
 #include "server/common/model/value_object/quantity.hpp"
 #include <chrono>
+#include <limits>
 
 namespace exchange::server
 {

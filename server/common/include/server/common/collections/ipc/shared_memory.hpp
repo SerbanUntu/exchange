@@ -3,6 +3,8 @@
 #include <concurrent/aeron_broadcast_descriptor.h>
 #include <concurrent/aeron_rb.h>
 
+#include <string>
+
 namespace exchange::server
 {
 
@@ -13,10 +15,13 @@ class SharedMemory
 {
     boost::interprocess::managed_shared_memory shm;
 
-    static constexpr auto segmentName{"SharedMemory"};
+    static constexpr auto defaultSegmentName{"SharedMemory"};
     static constexpr size_t segmentSize = size_t{1024} * 1024;
 
-    static void deleteSegment();
+    bool isOwner;
+    std::string segmentName;
+
+    void deleteSegment() const;
 
   public:
     static constexpr auto spmcName{"SpmcQueue"};
@@ -31,8 +36,11 @@ class SharedMemory
      *
      * @param isOwner Whether the caller manages the lifecycle of the shared memory object.
      * The first call in the application should have isOwner = true.
+     * @param segmentName The name of the shared memory segment. Should only be set to a different value when testing.
      */
-    explicit SharedMemory(bool isOwner);
+    explicit SharedMemory(bool isOwner, const std::string &segmentName = defaultSegmentName);
+
+    ~SharedMemory();
 
     /**
      * Getter for the raw Boost shared memory object.
@@ -41,15 +49,6 @@ class SharedMemory
      * @throws std::logic_error If called before the segment is created.
      */
     boost::interprocess::managed_shared_memory &get();
-
-    /**
-     * RAII for destroying the shared memory segment.
-     */
-    class Deleter
-    {
-      public:
-        ~Deleter();
-    };
 };
 
 } // namespace exchange::server

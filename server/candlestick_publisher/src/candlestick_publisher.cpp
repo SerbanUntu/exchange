@@ -12,19 +12,8 @@ int64_t CandlestickPublisher::timestampToIndex(const sys_seconds timestamp) cons
     return (timestamp - inMemoryStart).count();
 }
 
-Candle &CandlestickPublisher::candleAt(const sys_seconds timestamp)
-{
-    return candles[timestampToIndex(timestamp)];
-}
-
-const Candle &CandlestickPublisher::candleAt(const sys_seconds timestamp) const
-{
-    return candles[timestampToIndex(timestamp)];
-}
-
 CandlestickPublisher::CandlestickPublisher(ActionSpmcReceiver &&actionReceiver)
-    : actionReceiver(std::move(actionReceiver)), candles{{.start{time_point_cast<seconds>(system_clock::now())}}},
-      inMemoryStart{candles[0].start}
+    : actionReceiver(std::move(actionReceiver)), inMemoryStart{time_point_cast<seconds>(system_clock::now())}
 {
 }
 
@@ -33,15 +22,19 @@ void CandlestickPublisher::loop()
     const auto action = actionReceiver.receive();
 
     std::visit(overloads{[&](const TradeAction &tradeAction) {
-                             processTrade(tradeAction, time_point_cast<seconds>(action.header.timestamp));
+                             processTrade(tradeAction, time_point_cast<seconds>(action.header.timestamp),
+                                          action.header.securityId);
                          },
                          [](const auto &) {}},
                action.body);
 }
 
-void CandlestickPublisher::processTrade(const TradeAction &tradeAction, const sys_seconds timestamp)
+void CandlestickPublisher::processTrade(const TradeAction &tradeAction, const sys_seconds timestamp,
+                                        const SecurityId securityId)
 {
-    auto &lastCandle = candles[candles.size() - 1];
+    auto [it, _] = state.try_emplace(securityId, 1, Candle{.start = inMemoryStart});
+    auto &candles = it->second;
+    auto &lastCandle = candles.back();
     if (timestamp > lastCandle.start)
     {
         lastCandle.isClosed = true;
@@ -64,21 +57,27 @@ void CandlestickPublisher::processTrade(const TradeAction &tradeAction, const sy
 }
 
 std::vector<Candle> CandlestickPublisher::getCandles(const sys_seconds start, const sys_seconds end,
-                                                     const seconds resolution) const
+                                                     const seconds resolution, const SecurityId securityId) const
 {
-    if (timestampToIndex(start) >= static_cast<int64_t>(candles.size()))
+    const auto it = state.find(securityId);
+    if (it == state.end())
         return {};
-    std::vector<Candle> result;
+    const auto &candles = it->second;
 
-    for (auto candleStart = start; candleStart < end; candleStart += resolution)
+    auto firstCandleStart = start;
+    if (firstCandleStart < inMemoryStart)
+        firstCandleStart += (inMemoryStart - start + resolution - 1s) / resolution * resolution;
+
+    std::vector<Candle> result;
+    for (auto candleStart = firstCandleStart; candleStart < end; candleStart += resolution)
     {
+        if (timestampToIndex(candleStart) >= static_cast<int64_t>(candles.size()))
+            break;
         Candle fullResolutionCandle{.start{candleStart}, .resolution{resolution}, .isClosed = true};
         bool isOpenSet = false;
         for (auto t = candleStart; t < candleStart + resolution; t += 1s)
         {
-            if (t < inMemoryStart)
-                continue;
-            const auto &currentCandle = candleAt(t);
+            const auto &currentCandle = candles[timestampToIndex(t)];
             if (!currentCandle.isClosed)
                 return result;
             if (currentCandle.empty())

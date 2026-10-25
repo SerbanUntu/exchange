@@ -23,7 +23,6 @@ int matchingEngineMain() noexcept
         LOG = common::LogService::getLogger(common::LogProducer::MATCHING_ENGINE);
         LOG->info("Hello from the Matching Engine.");
 
-        SharedMemory::Deleter sharedMemoryDeleter;
         SharedMemory sharedMemory(true);
 
         [[maybe_unused]] const auto *mpscBuffer =

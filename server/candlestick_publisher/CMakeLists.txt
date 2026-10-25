@@ -19,3 +19,5 @@ target_link_libraries(exchange-server-candlestick
         boost::boost
         aeron::aeron
 )
+
+add_subdirectory(test)

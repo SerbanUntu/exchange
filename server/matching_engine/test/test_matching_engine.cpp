@@ -76,21 +76,19 @@ std::vector<std::size_t> typesOf(const std::vector<Action> &actions)
     return types;
 }
 
-SharedMemory createSharedMemory()
+MatchingEngine createMatchingEngine(SharedMemory &sharedMemory)
 {
-    SharedMemory sharedMemory{true};
     sharedMemory.get().construct<std::array<std::byte, SharedMemory::mpscTotalObjectSize>>(SharedMemory::mpscName)();
     sharedMemory.get().construct<std::array<std::byte, SharedMemory::spmcTotalObjectSize>>(SharedMemory::spmcName)();
-    return sharedMemory;
+    return MatchingEngine{EventMpscQueue{sharedMemory}, ActionSpmcSender{sharedMemory}, SECURITIES};
 }
 } // namespace
 
 class MatchingEngineTest : public testing::Test
 {
   protected:
-    SharedMemory::Deleter sharedMemoryDeleter;
-    SharedMemory sharedMemory = createSharedMemory();
-    MatchingEngine engine{EventMpscQueue{sharedMemory}, ActionSpmcSender{sharedMemory}, SECURITIES};
+    SharedMemory sharedMemory{true, "TestMatchingEngineSharedMemory"};
+    MatchingEngine engine = createMatchingEngine(sharedMemory);
 
     std::vector<Action> restGtc(const OrderId orderId, const Side side, const uint64_t price, const uint64_t quantity,
                                 const SecurityId securityId = SECURITY)

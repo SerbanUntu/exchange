@@ -4,21 +4,23 @@
 namespace exchange::server
 {
 
-void SharedMemory::deleteSegment()
+void SharedMemory::deleteSegment() const
 {
-    boost::interprocess::shared_memory_object::remove(segmentName);
+    boost::interprocess::shared_memory_object::remove(segmentName.c_str());
 }
 
-SharedMemory::SharedMemory(const bool isOwner)
+SharedMemory::SharedMemory(const bool isOwner, const std::string &segmentName)
+    : isOwner(isOwner), segmentName(segmentName)
 {
     if (isOwner)
     {
         deleteSegment();
-        shm = boost::interprocess::managed_shared_memory(boost::interprocess::create_only, segmentName, segmentSize);
+        shm = boost::interprocess::managed_shared_memory(boost::interprocess::create_only, segmentName.c_str(),
+                                                         segmentSize);
     }
     else
     {
-        shm = boost::interprocess::managed_shared_memory(boost::interprocess::open_only, segmentName);
+        shm = boost::interprocess::managed_shared_memory(boost::interprocess::open_only, segmentName.c_str());
     }
 }
 
@@ -29,9 +31,12 @@ boost::interprocess::managed_shared_memory &SharedMemory::get()
     return shm;
 }
 
-SharedMemory::Deleter::~Deleter()
+SharedMemory::~SharedMemory()
 {
-    deleteSegment();
+    if (isOwner)
+    {
+        deleteSegment();
+    }
 };
 
 } // namespace exchange::server
