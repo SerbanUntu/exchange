@@ -1,0 +1,56 @@
+name: Build
+description: Install dependencies, configure and build the project
+
+inputs:
+  cc:
+    description: C compiler
+    required: true
+  cxx:
+    description: C++ compiler
+    required: true
+  opt:
+    description: Optimization level
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Set compilers
+      shell: bash
+      run: |
+        echo "CC=${{ inputs.cc }}" >> "$GITHUB_ENV"
+        echo "CXX=${{ inputs.cxx }}" >> "$GITHUB_ENV"
+
+    - name: Install Conan
+      shell: bash
+      run: pip install conan
+
+    - name: Upgrade CMake
+      shell: bash
+      run: pip install --upgrade cmake
+
+    - name: Detect profile
+      shell: bash
+      run: conan profile detect --force
+
+    - name: Cache Conan packages
+      uses: actions/cache@v4
+      with:
+        path: ~/.conan2/p
+        key: conan-linux-${{ inputs.cc }}-${{ hashFiles('**/conanfile.txt') }}
+        restore-keys: |
+          conan-linux-${{ inputs.cc }}-
+
+    - name: Install dependencies
+      shell: bash
+      run: conan install . --build=missing --output-folder=cmake-build-release
+
+    - name: Configure
+      shell: bash
+      run: >
+        cmake --preset conan-release
+        -DOPTIMIZATION_LEVEL=${{ inputs.opt }}
+
+    - name: Build
+      shell: bash
+      run: cmake --build --preset conan-release

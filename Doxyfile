@@ -5,11 +5,14 @@ PROJECT_NAME           = "exchange"
 PROJECT_BRIEF          = "Low-latency exchange in C++"
 OUTPUT_DIRECTORY       = docs
 
-INPUT                  = apps client common server
+INPUT                  = README.md apps client common server
 FILE_PATTERNS          = *.cpp *.h *.hpp
+EXCLUDE_PATTERNS       = */test/*
+USE_MDFILE_AS_MAINPAGE = README.md
 RECURSIVE              = YES
 EXTRACT_ALL            = YES
-EXTRACT_STATIC         = YES
+EXTRACT_STATIC         = NO
+INHERIT_DOCS           = YES
 
 GENERATE_HTML          = YES
 GENERATE_LATEX         = NO

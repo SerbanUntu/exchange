@@ -11,6 +11,7 @@ Makefile
 *.ninja
 compile_commands.json
 build/
+!.github/actions/build/
 target/
 conan_provider.cmake
 docs/
