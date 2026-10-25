@@ -17,4 +17,5 @@ target_link_libraries(exchange-server-candlestick
         exchange::common
         exchange::server::common
         boost::boost
+        aeron::aeron
 )

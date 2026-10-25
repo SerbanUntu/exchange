@@ -2,8 +2,8 @@
 
 #include "common/util/logging.hpp"
 #include "server/candlestick_publisher/candlestick_publisher.hpp"
+#include "server/common/collections/ipc/action_spmc_receiver.hpp"
 #include "server/common/collections/ipc/shared_memory.hpp"
-#include "server/common/collections/ipc/spmc_queue.hpp"
 #include "server/common/model/action/action.hpp"
 
 #include <spdlog/logger.h>
@@ -17,10 +17,9 @@ int candlestickPublisherMain() noexcept
     {
         LOG = common::LogService::getLogger(common::LogProducer::CANDLESTICK_PUBLISHER);
 
-        SharedMemory sharedMemory(false);
-        auto [spmc, _] = sharedMemory.get().find<SPMCQueue<Action>>(SharedMemory::spmcName);
-
-        CandlestickPublisher candlestickPublisher(*spmc);
+        SharedMemory sharedMemory{false};
+        ActionSpmcReceiver spmcReceiver{sharedMemory};
+        CandlestickPublisher candlestickPublisher{(std::move(spmcReceiver))};
         while (true)
         {
             candlestickPublisher.loop();

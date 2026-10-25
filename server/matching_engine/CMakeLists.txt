@@ -17,6 +17,7 @@ target_link_libraries(exchange-server-matching-engine
         exchange::common
         exchange::server::common
         boost::boost
+        aeron::aeron
 )
 
 add_subdirectory(test)

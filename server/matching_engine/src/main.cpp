@@ -1,8 +1,8 @@
 #include "server/matching_engine/main.hpp"
 #include "common/util/logging.hpp"
-#include "server/common/collections/ipc/mpsc_queue.hpp"
+#include "server/common/collections/ipc/event_mpsc_queue.hpp"
 #include "server/common/collections/ipc/shared_memory.hpp"
-#include "server/common/collections/ipc/spmc_queue.hpp"
+#include "server/common/collections/ipc/action_spmc_sender.hpp"
 #include "server/common/model/action/action.hpp"
 #include "server/common/model/event/event.hpp"
 #include "server/matching_engine/matching_engine.hpp"
@@ -26,9 +26,15 @@ int matchingEngineMain() noexcept
         SharedMemory::Deleter sharedMemoryDeleter;
         SharedMemory sharedMemory(true);
 
-        MPSCQueue<Event> *mpsc = sharedMemory.get().construct<MPSCQueue<Event>>(SharedMemory::mpscName)();
-        SPMCQueue<Action> *spmc = sharedMemory.get().construct<SPMCQueue<Action>>(SharedMemory::spmcName)();
+        [[maybe_unused]] const auto *mpscBuffer =
+            sharedMemory.get().construct<std::array<std::byte, SharedMemory::mpscTotalObjectSize>>(
+                SharedMemory::mpscName)();
+        [[maybe_unused]] const auto *spmcBuffer =
+            sharedMemory.get().construct<std::array<std::byte, SharedMemory::spmcTotalObjectSize>>(
+                SharedMemory::spmcName)();
 
+        EventMpscQueue mpsc{sharedMemory};
+        ActionSpmcSender spmcSender{sharedMemory};
         std::array<SecurityId, common::Universe::NUMBER_OF_SECURITIES> securityIds;
         const auto &securities = common::Universe::getSecurities();
         for (size_t i = 0; i < securities.size(); ++i)
@@ -36,7 +42,7 @@ int matchingEngineMain() noexcept
             securityIds[i] = SecurityId(securities[i].security_id());
         }
 
-        MatchingEngine matchingEngine(*mpsc, *spmc, securityIds);
+        MatchingEngine matchingEngine{(std::move(mpsc)), (std::move(spmcSender)), securityIds};
         while (true)
         {
             matchingEngine.loop();

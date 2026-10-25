@@ -1,6 +1,6 @@
 #pragma once
 #include "server/candlestick_publisher/model/candle.hpp"
-#include "server/common/collections/ipc/spmc_queue.hpp"
+#include "server/common/collections/ipc/action_spmc_receiver.hpp"
 #include "server/common/model/action/action.hpp"
 #include "server/common/model/action/trade_action.hpp"
 #include <chrono>
@@ -10,7 +10,7 @@ namespace exchange::server
 {
 class CandlestickPublisher
 {
-    SPMCQueue<Action> &inQueue;
+    ActionSpmcReceiver actionReceiver;
     std::vector<Candle> candles;
     std::chrono::sys_seconds inMemoryStart;
 
@@ -19,7 +19,7 @@ class CandlestickPublisher
     [[nodiscard]] const Candle &candleAt(std::chrono::sys_seconds timestamp) const;
 
   public:
-    CandlestickPublisher(SPMCQueue<Action> &inQueue);
+    CandlestickPublisher(ActionSpmcReceiver &&actionReceiver);
 
     /**
      * Perform one iteration of the candlestick publisher's workflow.

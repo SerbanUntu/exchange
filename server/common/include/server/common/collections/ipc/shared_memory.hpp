@@ -1,5 +1,7 @@
 #pragma once
 #include <boost/interprocess/managed_shared_memory.hpp>
+#include <concurrent/aeron_broadcast_descriptor.h>
+#include <concurrent/aeron_rb.h>
 
 namespace exchange::server
 {
@@ -12,13 +14,17 @@ class SharedMemory
     boost::interprocess::managed_shared_memory shm;
 
     static constexpr auto segmentName{"SharedMemory"};
-    static constexpr size_t segmentSize = 64 * 1024;
+    static constexpr size_t segmentSize = 1024 * 1024;
 
     static void deleteSegment();
 
   public:
     static constexpr auto spmcName{"SpmcQueue"};
     static constexpr auto mpscName{"MpscQueue"};
+    static constexpr size_t spmcCapacity = 256 * 1024;
+    static constexpr size_t spmcTotalObjectSize = spmcCapacity + AERON_BROADCAST_BUFFER_TRAILER_LENGTH;
+    static constexpr size_t mpscCapacity = 256 * 1024;
+    static constexpr size_t mpscTotalObjectSize = mpscCapacity + AERON_RB_TRAILER_LENGTH;
 
     /**
      * Constructor for the shared memory object.

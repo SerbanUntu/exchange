@@ -1,5 +1,8 @@
 #include "server/matching_engine/matching_engine.hpp"
 
+#include "server/common/collections/ipc/action_spmc_sender.hpp"
+#include "server/common/collections/ipc/event_mpsc_queue.hpp"
+#include "server/common/collections/ipc/shared_memory.hpp"
 #include "server/common/model/action/order_added_action.hpp"
 #include "server/common/model/action/order_downsized_action.hpp"
 #include "server/common/model/action/order_removed_action.hpp"
@@ -72,14 +75,22 @@ std::vector<std::size_t> typesOf(const std::vector<Action> &actions)
     }
     return types;
 }
+
+SharedMemory createSharedMemory()
+{
+    SharedMemory sharedMemory{true};
+    sharedMemory.get().construct<std::array<std::byte, SharedMemory::mpscTotalObjectSize>>(SharedMemory::mpscName)();
+    sharedMemory.get().construct<std::array<std::byte, SharedMemory::spmcTotalObjectSize>>(SharedMemory::spmcName)();
+    return sharedMemory;
+}
 } // namespace
 
 class MatchingEngineTest : public testing::Test
 {
   protected:
-    MPSCQueue<Event> inQueue;
-    SPMCQueue<Action> outQueue;
-    MatchingEngine engine{inQueue, outQueue, SECURITIES};
+    SharedMemory::Deleter sharedMemoryDeleter;
+    SharedMemory sharedMemory = createSharedMemory();
+    MatchingEngine engine{EventMpscQueue{sharedMemory}, ActionSpmcSender{sharedMemory}, SECURITIES};
 
     std::vector<Action> restGtc(const OrderId orderId, const Side side, const uint64_t price, const uint64_t quantity,
                                 const SecurityId securityId = SECURITY)

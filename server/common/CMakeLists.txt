@@ -16,6 +16,7 @@ target_link_libraries(exchange-server-common
         PUBLIC
         exchange::common
         boost::boost
+        aeron::aeron
 )
 
 add_subdirectory(test)
