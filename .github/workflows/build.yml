@@ -2,27 +2,30 @@ name: build
 
 on: [ push ]
 
+permissions:
+  contents: read
+
 jobs:
-  build:
+  format:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install clang linter and formatter
-        run: sudo apt-get update && sudo apt-get install -y clang-format clang-tidy
+      - name: Install clang formatter
+        run: sudo apt-get update && sudo apt-get install -y clang-format
 
       - name: Check formatting
         run: |
           find client common server -type f \( -name '*.cpp' -o -name '*.h' -o -name '*.hpp' \) -print0 \
             | xargs -0 --no-run-if-empty clang-format --dry-run --Werror
 
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
       - name: Install Conan
         run: pip install conan
-
-      - name: Upgrade CMake
-        run: pip install --upgrade cmake
 
       - name: Detect profile
         run: conan profile detect --force
@@ -35,27 +38,94 @@ jobs:
           conan audit provider auth conancenter --token="$CONAN_AUDIT_TOKEN"
           conan audit scan .
 
-      - name: Cache Conan packages
-        uses: actions/cache@v4
-        with:
-          path: ~/.conan2/p
-          key: conan-linux-gcc-${{ hashFiles('**/conanfile.txt') }}
-          restore-keys: |
-            conan-linux-gcc-
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
 
-      - name: Install dependencies
-        run: conan install . --build=missing --output-folder=cmake-build-release
-
-      - name: Configure
-        run: cmake --preset conan-release
+      - name: Install clang linter
+        run: sudo apt-get update && sudo apt-get install -y clang-tidy
 
       - name: Build
-        run: cmake --build --preset conan-release
+        uses: ./.github/actions/build
+        with:
+          cc: gcc
+          cxx: g++
+          opt: 3
 
       - name: Lint
         run: |
           find client common server -type f -name '*.cpp' -not -path '*/test/*' -print0 \
             | xargs -0 --no-run-if-empty clang-tidy -p cmake-build-release/build/Release
 
+  test:
+    name: ${{ matrix.compiler }} -O${{ matrix.opt }}${{ matrix.sanitizers && format(' {0}', matrix.sanitizers) || '' }}
+    runs-on: ubuntu-latest
+    env:
+      ASAN_OPTIONS: detect_leaks=1:abort_on_error=1
+      UBSAN_OPTIONS: print_stacktrace=1:halt_on_error=1
+      TSAN_OPTIONS: halt_on_error=1:second_deadlock_stack=1:suppressions=${{ github.workspace }}/tsan.supp
+    strategy:
+      fail-fast: false
+      matrix:
+        compiler: [ gcc, clang ]
+        opt: [ 0, 3 ]
+        sanitizers: [ '', 'address,undefined', thread ]
+        include:
+          - compiler: gcc
+            cc: gcc
+            cxx: g++
+          - compiler: clang
+            cc: clang
+            cxx: clang++
+    steps:
+      - uses: actions/checkout@v4
+
+      # Ubuntu 24.04 runners use more Address Space Layout Randomization than the sanitizer runtimes support
+      - name: Reduce ASLR randomness
+        if: matrix.sanitizers != '' && !env.ACT
+        run: sudo sysctl vm.mmap_rnd_bits=28
+
+      - name: Build
+        uses: ./.github/actions/build
+        with:
+          cc: ${{ matrix.cc }}
+          cxx: ${{ matrix.cxx }}
+          opt: ${{ matrix.opt }}
+          sanitizers: ${{ matrix.sanitizers }}
+
       - name: Test
         run: ctest --test-dir cmake-build-release/build/Release --output-on-failure
+
+  coverage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install gcovr
+        run: pip install gcovr
+
+      - name: Build
+        uses: ./.github/actions/build
+        with:
+          cc: gcc
+          cxx: g++
+          opt: 0
+          coverage: 'true'
+
+      - name: Reset coverage counters
+        run: find cmake-build-release -name '*.gcda' -delete
+
+      - name: Test
+        run: ctest --test-dir cmake-build-release/build/Release --output-on-failure
+
+      - name: Generate coverage report
+        run: gcovr --cobertura coverage.xml
+
+      - name: Upload coverage to Codecov
+        if: ${{ !env.ACT && !cancelled() && hashFiles('coverage.xml') != '' }}
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: coverage.xml
+          fail_ci_if_error: true

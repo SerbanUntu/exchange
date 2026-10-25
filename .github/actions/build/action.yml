@@ -1,0 +1,112 @@
+name: Build
+description: Install dependencies, configure and build the project
+
+inputs:
+  cc:
+    description: C compiler
+    required: true
+  cxx:
+    description: C++ compiler
+    required: true
+  opt:
+    description: Optimization level
+    required: true
+  sanitizers:
+    description: Comma-separated sanitizers to build with
+    default: ''
+  coverage:
+    description: Whether to build with coverage instrumentation
+    default: 'false'
+
+runs:
+  using: composite
+  steps:
+    - name: Set compilers
+      shell: bash
+      run: |
+        echo "CC=${{ inputs.cc }}" >> "$GITHUB_ENV"
+        echo "CXX=${{ inputs.cxx }}" >> "$GITHUB_ENV"
+
+    - name: Install Conan
+      shell: bash
+      run: pip install conan
+
+    - name: Upgrade CMake
+      shell: bash
+      run: pip install --upgrade cmake
+
+    - name: Detect profile
+      shell: bash
+      run: conan profile detect --force
+
+    - name: Cache Conan packages
+      uses: actions/cache@v4
+      with:
+        path: ~/.conan2/p
+        key: conan-linux-${{ inputs.cc }}-${{ hashFiles('**/conanfile.txt') }}
+        restore-keys: |
+          conan-linux-${{ inputs.cc }}-
+
+    - name: Install dependencies
+      shell: bash
+      run: conan install . --build=missing --output-folder=cmake-build-release
+
+    - name: Configure
+      shell: bash
+      run: >
+        cmake --preset conan-release
+        -DOPTIMIZATION_LEVEL=${{ inputs.opt }}
+        -DSANITIZERS=${{ inputs.sanitizers }}
+        -DCOVERAGE=${{ inputs.coverage == 'true' && 'ON' || 'OFF' }}
+
+    - name: Build
+      shell: bash
+      run: cmake --build --preset conan-release
+
+# Replace with this to make Clang use the Conan packages installed for gcc,
+# to avoid building from source (only works on Linux).
+#
+# runs:
+#   using: composite
+#   steps:
+#     - name: Install Conan
+#       shell: bash
+#       run: pip install conan
+#
+#     - name: Upgrade CMake
+#       shell: bash
+#       run: pip install --upgrade cmake
+#
+#     - name: Detect profile
+#       shell: bash
+#       run: conan profile detect --force
+#
+#     - name: Cache Conan packages
+#       uses: actions/cache@v4
+#       with:
+#         path: ~/.conan2/p
+#         key: conan-linux-gcc-${{ hashFiles('**/conanfile.txt') }}
+#         restore-keys: |
+#           conan-linux-gcc-
+#
+#     - name: Install dependencies
+#       shell: bash
+#       run: conan install . --build=missing --output-folder=cmake-build-release
+#
+#     - name: Set compilers
+#       shell: bash
+#       run: |
+#         echo "CC=${{ inputs.cc }}" >> "$GITHUB_ENV"
+#         echo "CXX=${{ inputs.cxx }}" >> "$GITHUB_ENV"
+#
+#     - name: Configure
+#       shell: bash
+#       run: >
+#         cmake --preset conan-release
+#         -DOPTIMIZATION_LEVEL=${{ inputs.opt }}
+#         -DSANITIZERS=${{ inputs.sanitizers }}
+#         -DCOVERAGE=${{ inputs.coverage == 'true' && 'ON' || 'OFF' }}
+#
+#     - name: Build
+#       shell: bash
+#       run: cmake --build --preset conan-release

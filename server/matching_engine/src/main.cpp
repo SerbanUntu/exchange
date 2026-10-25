@@ -3,10 +3,10 @@
 #include "server/common/collections/ipc/event_mpsc_queue.hpp"
 #include "server/common/collections/ipc/shared_memory.hpp"
 #include "server/common/collections/ipc/action_spmc_sender.hpp"
-#include "server/common/model/action/action.hpp"
 #include "server/common/model/event/event.hpp"
 #include "server/matching_engine/matching_engine.hpp"
 #include "common/model/universe.hpp"
+#include "common/util/cpu_scheduling.hpp"
 
 #include <boost/interprocess/managed_shared_memory.hpp>
 
@@ -21,7 +21,10 @@ int matchingEngineMain() noexcept
     try
     {
         LOG = common::LogService::getLogger(common::LogProducer::MATCHING_ENGINE);
-        LOG->info("Hello from the Matching Engine.");
+        if (!common::pinToCore())
+        {
+            LOG->warn("Could not pin the matching engine to a single CPU core");
+        }
 
         SharedMemory sharedMemory(true);
 
@@ -32,8 +35,8 @@ int matchingEngineMain() noexcept
             sharedMemory.get().construct<std::array<std::byte, SharedMemory::spmcTotalObjectSize>>(
                 SharedMemory::spmcName)();
 
-        EventMpscQueue mpsc{sharedMemory};
-        ActionSpmcSender spmcSender{sharedMemory};
+        const EventMpscQueue mpsc{sharedMemory};
+        const ActionSpmcSender spmcSender{sharedMemory};
         std::array<SecurityId, common::Universe::NUMBER_OF_SECURITIES> securityIds;
         const auto &securities = common::Universe::getSecurities();
         for (size_t i = 0; i < securities.size(); ++i)

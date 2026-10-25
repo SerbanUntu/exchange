@@ -8,9 +8,11 @@ CMakeCache.txt
 cmake_install.cmake
 Makefile
 *.cmake
+!cmake/*.cmake
 *.ninja
 compile_commands.json
 build/
+!.github/actions/build/
 target/
 conan_provider.cmake
 docs/
