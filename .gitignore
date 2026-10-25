@@ -8,6 +8,7 @@ CMakeCache.txt
 cmake_install.cmake
 Makefile
 *.cmake
+!cmake/*.cmake
 *.ninja
 compile_commands.json
 build/

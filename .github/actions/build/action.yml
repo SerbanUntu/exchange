@@ -11,6 +11,9 @@ inputs:
   opt:
     description: Optimization level
     required: true
+  sanitizers:
+    description: Comma-separated sanitizers to build with
+    default: ''
 
 runs:
   using: composite
@@ -50,6 +53,7 @@ runs:
       run: >
         cmake --preset conan-release
         -DOPTIMIZATION_LEVEL=${{ inputs.opt }}
+        -DSANITIZERS=${{ inputs.sanitizers }}
 
     - name: Build
       shell: bash
