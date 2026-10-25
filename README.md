@@ -1,5 +1,9 @@
 # Stock Exchange
 
+[![build](https://github.com/SerbanUntu/exchange/actions/workflows/build.yml/badge.svg)](https://github.com/SerbanUntu/exchange/actions/workflows/build.yml)
+[![codecov](https://codecov.io/gh/SerbanUntu/exchange/graph/badge.svg)](https://codecov.io/gh/SerbanUntu/exchange)
+[![docs](https://img.shields.io/badge/docs-Doxygen-blue)](https://serbanuntu.github.io/exchange/)
+
 ## Further Reading
 
 Documentation about the public gRPC API of the exchange can be found in [the dedicated README](./proto/README.md).
