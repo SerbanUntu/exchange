@@ -6,12 +6,13 @@ namespace exchange::server
 {
 struct SecurityId
 {
-    uint32_t value;
-    explicit SecurityId(const uint32_t value) : value(value)
+    uint32_t value{};
+    constexpr SecurityId() = default;
+    constexpr explicit SecurityId(const uint32_t value) : value(value)
     {
     }
 
-    bool operator==(const SecurityId &other) const
+    constexpr bool operator==(const SecurityId &other) const
     {
         return value == other.value;
     }

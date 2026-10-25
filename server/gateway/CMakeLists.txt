@@ -18,6 +18,8 @@ target_link_libraries(exchange-server-gateway
         exchange::server::common
         exchange::proto
         gRPC::grpc++
+        boost::boost
+        aeron::aeron
 )
 
 add_subdirectory(test)

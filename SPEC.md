@@ -7,7 +7,7 @@ Network
   │ gRPC request
   ▼
 Gateway ──(uses)──► Risk Checks ──► reject / continue
-  │ writes internal event (+ correlation id) to
+  │ writes internal event to
   ▼
 Event Stream  (MPSC: many Gateway threads -> one queue)
   │
@@ -46,9 +46,12 @@ to answer gRPC calls, then responds to Network.
     - The data of the stateful components (publishers) is also flushed to disk and recovered.
 - Authentication
     - Uses JWT (`jwt-cpp` library).
-- Request/response correlation (order IDs)
-    - Every internal event the Gateway writes to the Event Stream carries a Gateway-assigned correlation id (e.g., gateway thread id, security id, and a monotonically increasing sequence number).
-    - This acts as the order ID.
+- Request/response correlation
+    - Simplified so the order ID is just a UUID
+- Fairness
+    - The event stream guarantees FIFO with respect to the instant a gateway thread enqueues an event, using atomics.
+    - Other pre-checks can add jitter (authentication, thread scheduling, kernel/NIC).
+    - Achieving fairness relative to wire arrival would require a resequencer that buffers events for a fixed delay window and orders them by a timestamp.
 
 ## Gateway (stateless)
 
@@ -165,3 +168,4 @@ to answer gRPC calls, then responds to Network.
     - AON resting orders
 - Other operational features
     - Kill-switch for the entire exchange
+    - Resequencer that ensures full FIFO between the physical wire and the matching engine (this would be needed for a regulated production-ready exchange)

@@ -9,14 +9,14 @@ namespace exchange::server
 struct OrderId
 {
     boost::uuids::uuid uuid;
-    SecurityId securityId;
-    OrderId(const boost::uuids::uuid uuid, const SecurityId securityId) : uuid(uuid), securityId(securityId)
+    OrderId() = default;
+    explicit OrderId(const boost::uuids::uuid uuid) : uuid(uuid)
     {
     }
 
     bool operator==(const OrderId &other) const
     {
-        return uuid == other.uuid && securityId == other.securityId;
+        return uuid == other.uuid;
     }
 };
 } // namespace exchange::server
