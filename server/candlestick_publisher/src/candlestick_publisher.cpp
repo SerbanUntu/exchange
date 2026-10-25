@@ -39,7 +39,7 @@ void CandlestickPublisher::loop()
                action.body);
 }
 
-void CandlestickPublisher::processTrade(const TradeAction &tradeAction, const sys_seconds timestamp) noexcept
+void CandlestickPublisher::processTrade(const TradeAction &tradeAction, const sys_seconds timestamp)
 {
     auto &lastCandle = candles[candles.size() - 1];
     if (timestamp > lastCandle.start)

@@ -42,7 +42,7 @@ int matchingEngineMain() noexcept
             securityIds[i] = SecurityId(securities[i].security_id());
         }
 
-        MatchingEngine matchingEngine{(std::move(mpsc)), (std::move(spmcSender)), securityIds};
+        MatchingEngine matchingEngine{mpsc, spmcSender, securityIds};
         while (true)
         {
             matchingEngine.loop();

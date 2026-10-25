@@ -30,7 +30,8 @@ ActionSpmcReceiver::~ActionSpmcReceiver()
     aeron_broadcast_receiver_close(&receiver);
 }
 
-void ActionSpmcReceiver::onAction(std::int32_t, uint8_t *data, std::size_t, void *clientd) noexcept
+void ActionSpmcReceiver::onAction([[maybe_unused]] std::int32_t msgTypeId, uint8_t *data,
+                                  [[maybe_unused]] std::size_t length, void *clientd) noexcept
 {
     std::memcpy(clientd, data, sizeof(Action));
 }

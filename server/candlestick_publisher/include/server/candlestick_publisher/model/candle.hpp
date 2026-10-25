@@ -13,11 +13,11 @@ struct Candle
     Price low{std::numeric_limits<Price>::max()};
     Price close{0};
     Quantity volume{0};
-    std::chrono::sys_seconds start{};
+    std::chrono::sys_seconds start;
     std::chrono::seconds resolution{std::chrono::seconds{1}};
     bool isClosed{false};
 
-    bool empty() const
+    [[nodiscard]] bool empty() const
     {
         return volume == Quantity{0};
     }

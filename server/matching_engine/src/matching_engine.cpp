@@ -17,9 +17,9 @@
 
 namespace exchange::server
 {
-MatchingEngine::MatchingEngine(EventMpscQueue &&inQueue, ActionSpmcSender &&actionSender,
+MatchingEngine::MatchingEngine(const EventMpscQueue &inQueue, const ActionSpmcSender &actionSender,
                                const std::span<const SecurityId> securities)
-    : inQueue(std::move(inQueue)), actionSender(std::move(actionSender))
+    : inQueue(inQueue), actionSender(actionSender)
 {
     for (const auto securityId : securities)
     {

@@ -17,7 +17,8 @@ void EventMpscQueue::push(const Event &event) noexcept
     aeron_mpsc_rb_write(&ringBufferWrapper, messageTypeId, &event, sizeof event);
 }
 
-void EventMpscQueue::onEvent(std::int32_t, const void *data, std::size_t, void *clientd) noexcept
+void EventMpscQueue::onEvent([[maybe_unused]] std::int32_t msgTypeId, const void *data,
+                             [[maybe_unused]] std::size_t length, void *clientd) noexcept
 {
     std::memcpy(clientd, data, sizeof(Event));
 }

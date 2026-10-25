@@ -19,7 +19,8 @@ class MatchingEngine
     std::unordered_map<SecurityId, OrderBook> state;
 
   public:
-    MatchingEngine(EventMpscQueue &&inQueue, ActionSpmcSender &&actionSender, std::span<const SecurityId> securities);
+    MatchingEngine(const EventMpscQueue &inQueue, const ActionSpmcSender &actionSender,
+                   std::span<const SecurityId> securities);
 
     /**
      * Perform one iteration of the matching engine's workflow.

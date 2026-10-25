@@ -37,7 +37,7 @@ class CandlestickPublisher
      * @param tradeAction The data corresponding to a single trade, needed to process.
      * @param timestamp The moment when the trade occurred.
      */
-    void processTrade(const TradeAction &tradeAction, std::chrono::sys_seconds timestamp) noexcept;
+    void processTrade(const TradeAction &tradeAction, std::chrono::sys_seconds timestamp);
 
     /**
      * Compute a list of candles within a time range, at arbitrary resolution.

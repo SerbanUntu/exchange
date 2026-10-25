@@ -17,7 +17,7 @@ class EventMpscQueue
 
     aeron_mpsc_rb_t ringBufferWrapper{};
 
-    static void onEvent(std::int32_t, const void *data, std::size_t, void *clientd) noexcept;
+    static void onEvent(std::int32_t msgTypeId, const void *data, std::size_t length, void *clientd) noexcept;
 
   public:
     explicit EventMpscQueue(SharedMemory &sharedMemory);

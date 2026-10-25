@@ -15,10 +15,10 @@ class ActionSpmcReceiver
 {
     aeron_broadcast_receiver_t receiver;
 
-    static void onAction(std::int32_t, uint8_t *data, std::size_t, void *clientd) noexcept;
+    static void onAction(std::int32_t msgTypeId, uint8_t *data, std::size_t length, void *clientd) noexcept;
 
   public:
-    ActionSpmcReceiver(SharedMemory &shared_memory);
+    ActionSpmcReceiver(SharedMemory &sharedMemory);
     ActionSpmcReceiver(const ActionSpmcReceiver &) = delete;
     ActionSpmcReceiver &operator=(const ActionSpmcReceiver &) = delete;
     ActionSpmcReceiver(ActionSpmcReceiver &&other) noexcept;
