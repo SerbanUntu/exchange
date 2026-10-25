@@ -15,6 +15,7 @@ endif()
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 include(OptimizationLevel)
 include(Sanitizers)
+include(Coverage)
 
 find_package(gRPC REQUIRED)     # gRPC::grpc++
 find_package(protobuf REQUIRED) # protobuf::protobuf

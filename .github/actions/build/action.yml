@@ -14,6 +14,9 @@ inputs:
   sanitizers:
     description: Comma-separated sanitizers to build with
     default: ''
+  coverage:
+    description: Whether to build with coverage instrumentation
+    default: 'false'
 
 runs:
   using: composite
@@ -54,6 +57,7 @@ runs:
         cmake --preset conan-release
         -DOPTIMIZATION_LEVEL=${{ inputs.opt }}
         -DSANITIZERS=${{ inputs.sanitizers }}
+        -DCOVERAGE=${{ inputs.coverage == 'true' && 'ON' || 'OFF' }}
 
     - name: Build
       shell: bash

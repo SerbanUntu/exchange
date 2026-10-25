@@ -96,3 +96,36 @@ jobs:
 
       - name: Test
         run: ctest --test-dir cmake-build-release/build/Release --output-on-failure
+
+  coverage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install gcovr
+        run: pip install gcovr
+
+      - name: Build
+        uses: ./.github/actions/build
+        with:
+          cc: gcc
+          cxx: g++
+          opt: 0
+          coverage: 'true'
+
+      - name: Reset coverage counters
+        run: find cmake-build-release -name '*.gcda' -delete
+
+      - name: Test
+        run: ctest --test-dir cmake-build-release/build/Release --output-on-failure
+
+      - name: Generate coverage report
+        run: gcovr --cobertura coverage.xml
+
+      - name: Upload coverage to Codecov
+        if: ${{ !cancelled() && hashFiles('coverage.xml') != '' }}
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: coverage.xml
+          fail_ci_if_error: true

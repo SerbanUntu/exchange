@@ -1,0 +1,8 @@
+option(COVERAGE "Build with coverage instrumentation" OFF)
+if(COVERAGE)
+    if(MSVC)
+        message(FATAL_ERROR "Coverage is only supported with GCC and Clang")
+    endif()
+    add_compile_options(--coverage -fprofile-update=atomic)
+    add_link_options(--coverage)
+endif()
