@@ -1,0 +1,13 @@
+diff --git a/server/common/src/collections/orderbook/orderbook.cpp b/server/common/src/collections/orderbook/orderbook.cpp
+index d990e22..e6b51e3 100644
+--- a/server/common/src/collections/orderbook/orderbook.cpp
++++ b/server/common/src/collections/orderbook/orderbook.cpp
+@@ -111,7 +111,7 @@ bool OrderBook::removeOrder(OrderId orderId) noexcept
+ 
+     if (listPtr->empty())
+     {
+-        OrderBookMap &restingBook = side == Side::BUY ? buyBook : sellBook;
++        OrderBookMap &restingBook = side == Side::SELL ? buyBook : sellBook;
+         restingBook.erase(price);
+     }
+     return true;

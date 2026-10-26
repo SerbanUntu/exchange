@@ -1,0 +1,12 @@
+diff --git a/server/common/src/collections/orderbook/orderbook.cpp b/server/common/src/collections/orderbook/orderbook.cpp
+index d990e22..c74cc1c 100644
+--- a/server/common/src/collections/orderbook/orderbook.cpp
++++ b/server/common/src/collections/orderbook/orderbook.cpp
+@@ -68,7 +68,6 @@ OrderBook::AddOrderResult OrderBook::addOrder(OrderId orderId, const Side side,
+                                 restingQuantity == remainingQuantity ? Trade::TradeResult::BOTH
+                                                                      : Trade::TradeResult::RESTING_FILLED);
+             remainingQuantity -= restingQuantity;
+-            orderLookup.erase(orderIt->id);
+             orderIt = orders.erase(orderIt);
+         }
+         if (orders.empty())

@@ -1,0 +1,13 @@
+diff --git a/server/common/src/collections/orderbook/orderbook.cpp b/server/common/src/collections/orderbook/orderbook.cpp
+index d990e22..9952cfe 100644
+--- a/server/common/src/collections/orderbook/orderbook.cpp
++++ b/server/common/src/collections/orderbook/orderbook.cpp
+@@ -47,7 +47,7 @@ OrderBook::AddOrderResult OrderBook::addOrder(OrderId orderId, const Side side,
+     while (bookIt != matchingBook.end() && remainingQuantity > Quantity{0})
+     {
+         if (orderType == OrderType::LIMIT && price.has_value() &&
+-            ((side == Side::BUY && bookIt->first > *price) || (side == Side::SELL && bookIt->first < *price)))
++            ((side == Side::BUY && bookIt->first >= *price) || (side == Side::SELL && bookIt->first < *price)))
+         {
+             break;
+         }

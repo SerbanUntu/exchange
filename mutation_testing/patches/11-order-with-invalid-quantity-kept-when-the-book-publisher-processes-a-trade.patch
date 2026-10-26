@@ -1,0 +1,12 @@
+diff --git a/server/orderbook_publisher/src/orderbook_publisher.cpp b/server/orderbook_publisher/src/orderbook_publisher.cpp
+index bdad06a..d0d99d6 100644
+--- a/server/orderbook_publisher/src/orderbook_publisher.cpp
++++ b/server/orderbook_publisher/src/orderbook_publisher.cpp
+@@ -39,7 +39,6 @@ void OrderbookPublisher::processAction(const Action &action)
+                        if (maybeRestingOrder != std::nullopt)
+                        {
+                            const auto restingOrder = *maybeRestingOrder;
+-                           securityState.orderBook.removeOrder(restingOrder.id);
+                            securityState.orderBook.addOrder(
+                                restingOrder.id, restingOrder.side, restingOrder.price, restingOrder.totalQuantity,
+                                restingOrder.totalQuantity - actionBody.remainingRestingQuantity, TimeInForce::GTC,
