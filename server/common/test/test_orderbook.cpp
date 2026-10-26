@@ -258,6 +258,21 @@ TEST(OrderBookTest, AddOrderFillsAFokOrderAcrossSeveralPriceLevels)
     EXPECT_FALSE(addedOrder.has_value());
 }
 
+TEST(OrderBookTest, AddOrderFillsAFokSellOrderAcrossSeveralPriceLevels)
+{
+    OrderBook book;
+    addGtc(book, makeOrderId(1), Side::BUY, 101, 2);
+    addGtc(book, makeOrderId(2), Side::BUY, 100, 2);
+
+    const auto [addedOrder, trades] = book.addOrder(makeOrderId(3), Side::SELL, Price{100}, Quantity{4}, Quantity{0},
+                                                    TimeInForce::FOK, OrderType::LIMIT);
+
+    ASSERT_EQ(trades.size(), 2U);
+    EXPECT_EQ(trades[0].price, Price{101});
+    EXPECT_EQ(trades[1].price, Price{100});
+    EXPECT_FALSE(addedOrder.has_value());
+}
+
 TEST(OrderBookTest, AddOrderIgnoresLiquidityOutsideTheLimitPriceForAFokOrder)
 {
     OrderBook book;
@@ -545,6 +560,24 @@ TEST(OrderBookTest, AmendOrderRemovesTheOrderWhenTheNewQuantityEqualsTheFilledQu
     EXPECT_TRUE(addResult.trades.empty());
     EXPECT_FALSE(addResult.addedOrder.has_value());
     EXPECT_FALSE(book.removeOrder(resting));
+}
+
+TEST(OrderBookTest, AmendOrderRejectsAQuantityBelowTheFilledQuantityAtANewPrice)
+{
+    OrderBook book;
+    const auto resting = makeOrderId(1);
+    addGtc(book, resting, Side::SELL, 100, 10);
+    addGtc(book, makeOrderId(2), Side::BUY, 100, 4);
+
+    const auto [status, addResult] = book.amendOrder(resting, Quantity{3}, Price{101});
+
+    EXPECT_EQ(status, OrderBook::AmendOrderStatus::CANNOT_AMEND);
+    EXPECT_TRUE(addResult.trades.empty());
+    const auto order = book.getOrder(resting);
+    ASSERT_TRUE(order.has_value());
+    EXPECT_EQ(order->price, Price{100});
+    EXPECT_EQ(order->totalQuantity, Quantity{10});
+    EXPECT_EQ(order->filledQuantity, Quantity{4});
 }
 
 TEST(OrderBookTest, AddOrderOnlyMatchesTheUnfilledQuantityOfAPartiallyFilledOrder)
