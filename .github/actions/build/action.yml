@@ -10,13 +10,16 @@ inputs:
     required: true
   opt:
     description: Optimization level
-    required: true
+    default: ''
   sanitizers:
     description: Comma-separated sanitizers to build with
     default: ''
   coverage:
     description: Whether to build with coverage instrumentation
     default: 'false'
+  build:
+    description: Whether to configure and build the project after installing dependencies
+    default: 'true'
 
 runs:
   using: composite
@@ -52,6 +55,7 @@ runs:
       run: conan install . --build=missing --output-folder=cmake-build-release
 
     - name: Configure
+      if: inputs.build == 'true'
       shell: bash
       run: >
         cmake --preset conan-release
@@ -60,6 +64,7 @@ runs:
         -DCOVERAGE=${{ inputs.coverage == 'true' && 'ON' || 'OFF' }}
 
     - name: Build
+      if: inputs.build == 'true'
       shell: bash
       run: cmake --build --preset conan-release
 

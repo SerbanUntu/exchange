@@ -29,6 +29,15 @@ san sanitizers="address" build_dir=("cmake-build-san-" + replace(sanitizers, ","
     cmake --build {{build_dir}}
     ASAN_OPTIONS=detect_leaks=1:abort_on_error=1 UBSAN_OPTIONS=print_stacktrace=1:halt_on_error=1 TSAN_OPTIONS=halt_on_error=1:second_deadlock_stack=1:suppressions={{justfile_directory()}}/tsan.supp ctest --test-dir {{build_dir}} --output-on-failure
 
+patch:
+    ./mutation_testing/generate_patch.sh
+
+mutate number:
+    ./mutation_testing/test_patch.sh {{number}}
+
+mutations:
+    ./mutation_testing/run_all_mutations.sh
+
 check:
     just check-format
     -just audit

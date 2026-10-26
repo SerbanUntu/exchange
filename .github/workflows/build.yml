@@ -97,6 +97,43 @@ jobs:
       - name: Test
         run: ctest --test-dir cmake-build-release/build/Release --output-on-failure
 
+  mutations:
+    needs: test
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Reduce ASLR randomness
+        if: hashFiles('mutation_testing/patches/*.patch') != '' && !env.ACT
+        run: sudo sysctl vm.mmap_rnd_bits=28
+
+      - name: Install dependencies
+        if: hashFiles('mutation_testing/patches/*.patch') != ''
+        uses: ./.github/actions/build
+        with:
+          cc: gcc
+          cxx: g++
+          build: 'false'
+
+      - name: Run mutations
+        if: hashFiles('mutation_testing/patches/*.patch') != ''
+        run: ./mutation_testing/run_all_mutations.sh
+
+      - name: Upload results
+        if: ${{ !cancelled() && hashFiles('mutation_testing/build/MUTATION_TESTING_RESULTS.md') != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: mutation-testing-results
+          path: mutation_testing/build/MUTATION_TESTING_RESULTS.md
+
+      - name: Upload logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mutation-testing-logs
+          path: mutation_testing/build/logs/
+
   coverage:
     runs-on: ubuntu-latest
     steps:
