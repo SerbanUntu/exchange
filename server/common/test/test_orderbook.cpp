@@ -37,6 +37,7 @@ TEST(OrderBookTest, AddOrderMatchesACrossingBuyWithARestingSell)
     EXPECT_EQ(trades[0].restingId, resting);
     EXPECT_EQ(trades[0].price, Price{100});
     EXPECT_EQ(trades[0].quantity, Quantity{10});
+    EXPECT_EQ(trades[0].remainingRestingQuantity, Quantity{0});
     EXPECT_EQ(trades[0].aggressorSide, Side::BUY);
     EXPECT_EQ(trades[0].result, Trade::TradeResult::BOTH);
 
@@ -136,8 +137,10 @@ TEST(OrderBookTest, AddOrderRespectsTimePriorityWithinAPriceLevel)
     ASSERT_EQ(trades.size(), 2U);
     EXPECT_EQ(trades[0].restingId, first);
     EXPECT_EQ(trades[0].quantity, Quantity{2});
+    EXPECT_EQ(trades[0].remainingRestingQuantity, Quantity{0});
     EXPECT_EQ(trades[1].restingId, second);
     EXPECT_EQ(trades[1].quantity, Quantity{1});
+    EXPECT_EQ(trades[1].remainingRestingQuantity, Quantity{1});
     EXPECT_EQ(trades[1].result, Trade::TradeResult::AGGRESSOR_FILLED);
 }
 
@@ -150,11 +153,13 @@ TEST(OrderBookTest, AddOrderPartiallyFillsARestingOrderAndLeavesItOnTheBook)
     const auto firstTrades = addGtc(book, makeOrderId(2), Side::BUY, 100, 4).trades;
     ASSERT_EQ(firstTrades.size(), 1U);
     EXPECT_EQ(firstTrades[0].quantity, Quantity{4});
+    EXPECT_EQ(firstTrades[0].remainingRestingQuantity, Quantity{6});
     EXPECT_EQ(firstTrades[0].result, Trade::TradeResult::AGGRESSOR_FILLED);
 
     const auto secondTrades = addGtc(book, makeOrderId(3), Side::BUY, 100, 6).trades;
     ASSERT_EQ(secondTrades.size(), 1U);
     EXPECT_EQ(secondTrades[0].quantity, Quantity{6});
+    EXPECT_EQ(secondTrades[0].remainingRestingQuantity, Quantity{0});
     EXPECT_EQ(secondTrades[0].result, Trade::TradeResult::BOTH);
     EXPECT_FALSE(book.removeOrder(resting));
 }

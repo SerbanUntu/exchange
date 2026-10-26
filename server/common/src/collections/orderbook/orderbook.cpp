@@ -56,13 +56,13 @@ OrderBook::AddOrderResult OrderBook::addOrder(OrderId orderId, const Side side, 
             const auto restingQuantity = orderIt->remainingQuantity();
             if (restingQuantity > remainingQuantity)
             {
-                trades.emplace_back(orderId, orderIt->id, currentPrice, remainingQuantity, side,
-                                    Trade::TradeResult::AGGRESSOR_FILLED);
+                trades.emplace_back(orderId, orderIt->id, currentPrice, remainingQuantity,
+                                    restingQuantity - remainingQuantity, side, Trade::TradeResult::AGGRESSOR_FILLED);
                 orderIt->filledQuantity += remainingQuantity;
                 remainingQuantity = Quantity{0};
                 break;
             }
-            trades.emplace_back(orderId, orderIt->id, currentPrice, restingQuantity, side,
+            trades.emplace_back(orderId, orderIt->id, currentPrice, restingQuantity, Quantity{0}, side,
                                 restingQuantity == remainingQuantity ? Trade::TradeResult::BOTH
                                                                      : Trade::TradeResult::RESTING_FILLED);
             remainingQuantity -= restingQuantity;
@@ -184,6 +184,16 @@ OrderBook::AmendOrderResult OrderBook::amendOrder(OrderId orderId, const Quantit
     return {.status = AmendOrderStatus::AMENDED,
             .tradesAfterLosingPriority = addOrder(orderId, order.side, newPrice, newQuantity - order.filledQuantity,
                                                   TimeInForce::GTC, OrderType::LIMIT)};
+}
+
+const OrderBookMap &OrderBook::getBuyBook() const noexcept
+{
+    return buyBook;
+}
+
+const OrderBookMap &OrderBook::getSellBook() const noexcept
+{
+    return sellBook;
 }
 
 } // namespace exchange::server

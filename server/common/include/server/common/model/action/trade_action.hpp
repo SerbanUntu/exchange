@@ -11,6 +11,7 @@ struct TradeAction
     OrderId restingId;
     Price price;
     Quantity quantity;
+    Quantity remainingRestingQuantity;
     Side aggressorSide;
 };
 } // namespace exchange::server

@@ -48,6 +48,7 @@ inline Action makeTrade(const uint64_t quantity)
     return makeAction(makeOrderId(1), TradeAction{.restingId = makeOrderId(2),
                                                   .price = Price{100},
                                                   .quantity = Quantity{quantity},
+                                                  .remainingRestingQuantity = Quantity{quantity + 1},
                                                   .aggressorSide = Side::BUY});
 }
 
@@ -78,6 +79,7 @@ inline void expectSameBody(const TradeAction &expected, const TradeAction &actua
     EXPECT_EQ(actual.restingId, expected.restingId);
     EXPECT_EQ(actual.price, expected.price);
     EXPECT_EQ(actual.quantity, expected.quantity);
+    EXPECT_EQ(actual.remainingRestingQuantity, expected.remainingRestingQuantity);
     EXPECT_EQ(actual.aggressorSide, expected.aggressorSide);
 }
 

@@ -31,6 +31,7 @@ TEST_F(ActionSpmcSenderTest, SendDeliversEveryActionTypeIntact)
         makeAction(makeOrderId(5), TradeAction{.restingId = makeOrderId(6),
                                                .price = Price{101},
                                                .quantity = Quantity{2},
+                                               .remainingRestingQuantity = Quantity{3},
                                                .aggressorSide = Side::SELL}),
     };
 

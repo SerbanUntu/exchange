@@ -4,7 +4,6 @@
 #include "server/candlestick_publisher/candlestick_publisher.hpp"
 #include "server/common/collections/ipc/action_spmc_receiver.hpp"
 #include "server/common/collections/ipc/shared_memory.hpp"
-#include "server/common/model/action/action.hpp"
 
 #include <spdlog/logger.h>
 

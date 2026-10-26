@@ -47,7 +47,8 @@ std::vector<Action> MatchingEngine::processEvent(const Event &event)
                 const auto [addedOrder, trades] =
                     orderBook.addOrder(event.header.orderId, eventBody.side, eventBody.price, eventBody.quantity,
                                        eventBody.tif, OrderType::LIMIT);
-                for (const auto &[aggressorId, restingId, price, quantity, aggressorSide, tradeResult] : trades)
+                for (const auto &[aggressorId, restingId, price, quantity, remainingRestingQuantity, aggressorSide,
+                                  tradeResult] : trades)
                 {
                     result.emplace_back(Action::Header{.orderId = aggressorId,
                                                        .securityId = event.header.securityId,
@@ -55,6 +56,7 @@ std::vector<Action> MatchingEngine::processEvent(const Event &event)
                                         TradeAction{.restingId = restingId,
                                                     .price = price,
                                                     .quantity = quantity,
+                                                    .remainingRestingQuantity = remainingRestingQuantity,
                                                     .aggressorSide = aggressorSide});
                     if (tradeResult == Trade::TradeResult::RESTING_FILLED || tradeResult == Trade::TradeResult::BOTH)
                     {
@@ -79,7 +81,8 @@ std::vector<Action> MatchingEngine::processEvent(const Event &event)
                 const auto [addedOrder, trades] =
                     orderBook.addOrder(event.header.orderId, eventBody.side, std::nullopt, eventBody.quantity,
                                        TimeInForce::IOC, OrderType::MARKET);
-                for (const auto &[aggressorId, restingId, price, quantity, aggressorSide, tradeResult] : trades)
+                for (const auto &[aggressorId, restingId, price, quantity, remainingRestingQuantity, aggressorSide,
+                                  tradeResult] : trades)
                 {
                     result.emplace_back(Action::Header{.orderId = aggressorId,
                                                        .securityId = event.header.securityId,
@@ -87,6 +90,7 @@ std::vector<Action> MatchingEngine::processEvent(const Event &event)
                                         TradeAction{.restingId = restingId,
                                                     .price = price,
                                                     .quantity = quantity,
+                                                    .remainingRestingQuantity = remainingRestingQuantity,
                                                     .aggressorSide = aggressorSide});
                     if (tradeResult == Trade::TradeResult::RESTING_FILLED || tradeResult == Trade::TradeResult::BOTH)
                     {
@@ -124,7 +128,8 @@ std::vector<Action> MatchingEngine::processEvent(const Event &event)
                         return;
 
                     const auto &[addedOrder, trades] = amendResult.tradesAfterLosingPriority;
-                    for (const auto &[aggressorId, restingId, price, quantity, aggressorSide, tradeResult] : trades)
+                    for (const auto &[aggressorId, restingId, price, quantity, remainingRestingQuantity, aggressorSide,
+                                      tradeResult] : trades)
                     {
                         result.emplace_back(Action::Header{.orderId = aggressorId,
                                                            .securityId = event.header.securityId,
@@ -132,6 +137,7 @@ std::vector<Action> MatchingEngine::processEvent(const Event &event)
                                             TradeAction{.restingId = restingId,
                                                         .price = price,
                                                         .quantity = quantity,
+                                                        .remainingRestingQuantity = remainingRestingQuantity,
                                                         .aggressorSide = aggressorSide});
                         if (tradeResult == Trade::TradeResult::RESTING_FILLED ||
                             tradeResult == Trade::TradeResult::BOTH)

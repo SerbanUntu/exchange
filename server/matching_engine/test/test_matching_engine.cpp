@@ -145,6 +145,7 @@ TEST_F(MatchingEngineTest, ProcessEventEmitsATradeAndRemovesTheFilledRestingOrde
     EXPECT_EQ(trade.restingId, resting);
     EXPECT_EQ(trade.price, Price{100});
     EXPECT_EQ(trade.quantity, Quantity{5});
+    EXPECT_EQ(trade.remainingRestingQuantity, Quantity{0});
     EXPECT_EQ(trade.aggressorSide, Side::BUY);
     EXPECT_EQ(actions[1].header.orderId, resting);
 }
@@ -158,7 +159,8 @@ TEST_F(MatchingEngineTest, ProcessEventDoesNotRemoveAPartiallyFilledRestingOrder
         makeOrderId(2),
         NewLimitOrderEvent{.side = Side::BUY, .quantity = Quantity{4}, .price = Price{100}, .tif = TimeInForce::IOC}));
 
-    EXPECT_EQ(typesOf(actions), (std::vector{TRADE}));
+    ASSERT_EQ(typesOf(actions), (std::vector{TRADE}));
+    EXPECT_EQ(std::get<TradeAction>(actions[0].body).remainingRestingQuantity, Quantity{6});
 }
 
 TEST_F(MatchingEngineTest, ProcessEventAddsTheUnfilledRemainderOfAGtcOrder)

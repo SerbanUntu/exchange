@@ -103,5 +103,19 @@ class OrderBook
      * @param newPrice The new price of the order
      */
     AmendOrderResult amendOrder(OrderId orderId, Quantity newQuantity, Price newPrice) noexcept;
+
+    /**
+     * Getter for a read-only view of the buy book.
+     *
+     * @return A read-only view of the buy book.
+     */
+    [[nodiscard]] const OrderBookMap &getBuyBook() const noexcept;
+
+    /**
+     * Getter for a read-only view of the sell book.
+     *
+     * @return A read-only view of the sell book.
+     */
+    [[nodiscard]] const OrderBookMap &getSellBook() const noexcept;
 };
 } // namespace exchange::server

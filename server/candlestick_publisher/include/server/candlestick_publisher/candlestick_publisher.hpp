@@ -18,10 +18,11 @@ class CandlestickPublisher
     [[nodiscard]] int64_t timestampToIndex(std::chrono::sys_seconds timestamp) const noexcept;
 
   public:
-    CandlestickPublisher(ActionSpmcReceiver &&actionReceiver);
+    explicit CandlestickPublisher(ActionSpmcReceiver &&actionReceiver);
 
     /**
-     * Perform one iteration of the candlestick publisher's workflow.
+     * Perform one iteration of the candlestick publisher's workflow, which
+     * consumes one action from the SPMC queue and updates its internal state.
      */
     void loop();
 
@@ -34,10 +35,10 @@ class CandlestickPublisher
      * Invariant: For each security, the only candle that is not closed is the most recent one.
      *
      * @param tradeAction The data corresponding to a single trade, needed to process.
-     * @param timestamp The moment when the trade occurred.
      * @param securityId The security that was traded.
+     * @param timestamp The moment when the trade occurred.
      */
-    void processTrade(const TradeAction &tradeAction, std::chrono::sys_seconds timestamp, SecurityId securityId);
+    void processTrade(const TradeAction &tradeAction, SecurityId securityId, std::chrono::sys_seconds timestamp);
 
     /**
      * Compute a list of candles within a time range, at arbitrary resolution.
@@ -49,14 +50,14 @@ class CandlestickPublisher
      * that candle is then considered, and the full candle is included in the final result, even though it might exceed
      * the specified end time.
      *
+     * @param securityId The security whose candles are computed
      * @param start The timestamp that indicates the start time of the first candle, inclusive
      * @param end The timestamp that is one over the last timestamp at which a candle can start
      * @param resolution Over what period a single candle is calculated, in seconds
-     * @param securityId The security whose candles are computed
      * @return The list of valid candles in the specified interval. If the input is invalid or the security has not been
      * traded yet, an empty vector is returned.
      */
-    [[nodiscard]] std::vector<Candle> getCandles(std::chrono::sys_seconds start, std::chrono::sys_seconds end,
-                                                 std::chrono::seconds resolution, SecurityId securityId) const;
+    [[nodiscard]] std::vector<Candle> getCandles(SecurityId securityId, std::chrono::sys_seconds start,
+                                                 std::chrono::sys_seconds end, std::chrono::seconds resolution) const;
 };
 } // namespace exchange::server

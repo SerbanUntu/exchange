@@ -1,6 +1,7 @@
 #include <server/orderbook_publisher/main.hpp>
 
 #include "common/util/logging.hpp"
+#include "server/orderbook_publisher/orderbook_publisher.hpp"
 
 #include <spdlog/logger.h>
 
@@ -12,7 +13,14 @@ int orderbookPublisherMain() noexcept
     try
     {
         LOG = common::LogService::getLogger(common::LogProducer::ORDERBOOK_PUBLISHER);
-        LOG->info("Hello from the Orderbook Publisher.");
+        SharedMemory sharedMemory{false};
+        ActionSpmcReceiver spmcReceiver{sharedMemory};
+        OrderbookPublisher orderbookPublisher{(std::move(spmcReceiver))};
+        while (true)
+        {
+            orderbookPublisher.loop();
+        }
+
         return 0;
     }
     catch (const std::exception &err)
