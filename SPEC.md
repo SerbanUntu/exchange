@@ -17,12 +17,12 @@ Matching Engine  (single instance, owns every security's order book)
   ├──────────────────► Archiver (embedded thread) ──► disk, later exported to S3 Glacier
   │ writes actions to
   ▼
-Action Stream  (SPMC: one queue -> many consumers)
-  ├──► Order Manager             (per-order state; resolves the Gateway's blocking
-  │                                Submit/Cancel/Amend calls; pushes WatchOrder updates)
-  ├──► Orderbook Data Publisher  (current book state: L1/L2 eager, L3 on futex notify)
-  ├──► Execution Data Publisher  (fill / execution history)
-  └──► Candlestick Data Publisher (OHLC candles)
+Action Stream  (SPMC: one queue -> many consumers. Data is broadcast)
+  ├──► Orderbook Data Publisher   (current book state: L1 eager, L2 using a shared memory mailbox)
+  ├──► Execution Data Publisher   (fill / execution history)
+  ├──► Gateway                    (SPMC items map directly to L3 updates)
+  ├──► Order Manager              (updates to individual orders)
+  └──► Candlestick Data Publisher (OHLCV candles)
          │ uses
          ▼
        Archiver (embedded thread) ──► disk, later exported to S3 Glacier
@@ -35,10 +35,14 @@ to answer gRPC calls, then responds to Network.
     - By default, each component is a separate OS process (exceptions are below).
     - The Archiver is a separate thread in each consumer process that needs to archive its incoming stream (currently the Matching Engine, for the Event Stream, and the Candlestick Data Publisher, for the Action Stream). It communicates with the host's main thread via an SPSC queue and is always called asynchronously (fire-and-forget) so it never stalls the host process. A separate, standalone Archiver process also ingests the Action Stream directly and performs the same archiving, independent of any single publisher's uptime.
     - The Risk Checks module is a basic stateless library called by the Gateway before forwarding to the Event Stream. It is not a separate process.
+    - The launch order of processes (due to state synchronization and shared memory ownership) is:
+        1. Matching Engine
+        2. Consumers, archivers
+        3. Gateway
 - Inter-process communication (IPC)
     - IPC is done via shared memory.
-    - The gateway either notifies the publisher that it needs data using a futex or relies on the publisher to update the shared buffer eagerly.
-    - Eager shared memory updates are done only for L1 and L2 market data.
+    - The gateway either notifies the publisher that it needs data using a shared memory mutex or relies on the publisher to update the shared buffer eagerly.
+    - Eager shared memory updates are done only for L1 market data.
 - The Matching Engine acts as a bottleneck, with the MPSC Event Stream queue as the input and the SPMC Action Stream queue as the output.
 - Persistence and Restart
     - The contents of the Event Stream and the Action Stream, as well as the descriptor each process has on them, are flushed to disk on safe shutdown and read back on startup.
@@ -60,11 +64,12 @@ to answer gRPC calls, then responds to Network.
 - FROM Orderbook Data Publisher – Requested market data.
 - FROM Execution Data Publisher – Requested order data.
 - FROM Candlestick Data Publisher – Requested market data.
-- TO Order Manager – Notifies (via futex) that order data is needed.
-- TO Orderbook Data Publisher – Notifies (via futex) that L3 order book data is needed.
-- TO Candlestick Data Publisher – Notifies (via futex) that market candle data is needed.
-- TO Execution Data Publisher – Notifies (via futex) that order execution data is needed.
-- TO Event Stream – gRPC requests stored as internal events, with account number (obtained from the JWT) and a Gateway-assigned correlation id.
+- FROM Action Stream – L3 orderbook updates (separate thread waits and then distributes to subscribed clients).
+- TO Order Manager – Notifies (via shared memory mutex) that order data is needed.
+- TO Orderbook Data Publisher – Notifies (via shared memory mutex) that L2 order book data is needed.
+- TO Candlestick Data Publisher – Notifies (via shared memory mutex) that market candle data is needed.
+- TO Execution Data Publisher – Notifies (via shared memory mutex) that order execution data is needed.
+- TO Event Stream – gRPC requests stored as internal events, with account number (obtained from the JWT) and potentially a Gateway-assigned correlation id.
 - TO Network – gRPC responses, obtained by querying the order manager and publishers.
 - USES Risk Checks – To reject orders that do not pass the checks.
 - Responsibilities: gRPC service, Auth, Validation, Normalization. Each parallel thread writes to the Event Stream MPSC queue.
@@ -74,7 +79,7 @@ to answer gRPC calls, then responds to Network.
 - USED BY Gateway – To reject orders that do not pass the checks.
 - Responsibilities: Quantity and price limits (sanity checks).
 
-## Matching Engine (stateless)
+## Matching Engine (stateful)
 
 - FROM Event Stream – Internal events.
 - TO Action Stream – Internal order book changes (actions).
@@ -85,7 +90,7 @@ to answer gRPC calls, then responds to Network.
 
 - FROM Action Stream – Actions produced by the Matching Engine.
 - TO Gateway – Requested order data.
-- Responsibilities: Sending updates about individual orders to the actors who placed them.
+- Responsibilities: Sending the state of individual orders to the actors who placed them.
 
 ## Orderbook Data Publisher (stateful)
 
@@ -151,7 +156,7 @@ to answer gRPC calls, then responds to Network.
     - The exchange could keep a Transaction Ledger component as part of a larger post-trade settlement process (another consumer of the Action Stream).
 - Frontend (read-only)
     - A React dashboard that provides the real-time view of the order book and candlestick charts.
-    - Would require extending the API to provide streaming publisher data.
+    - Would require extending the API to provide streaming data endpoints for all publishers (especially the candlestick one).
     - Acts as an additional client that connects to the Gateway.
 - Frontend (interactive)
     - Additional screens for order management and lifecycle, and execution history. 

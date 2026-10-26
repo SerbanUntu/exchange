@@ -49,8 +49,9 @@ class CandlestickPublisherTest : public testing::Test
 
     CandlestickPublisherTest()
     {
-        sharedMemory.get().construct<std::array<std::byte, SharedMemory::spmcTotalObjectSize>>(
-            SharedMemory::spmcName)();
+        [[maybe_unused]] const auto _ =
+            sharedMemory.get().construct<std::array<std::byte, SharedMemory::spmcTotalObjectSize>>(
+                SharedMemory::spmcName)();
         do
         {
             historyStart = time_point_cast<seconds>(system_clock::now());
@@ -61,15 +62,15 @@ class CandlestickPublisherTest : public testing::Test
     void trade(const int64_t secondsAfterStart, const uint64_t price, const uint64_t quantity,
                const SecurityId securityId = SECURITY)
     {
-        publisher->processTrade(TradeAction{.price = Price{price}, .quantity = Quantity{quantity}},
-                                historyStart + seconds{secondsAfterStart}, securityId);
+        publisher->processTrade(TradeAction{.price = Price{price}, .quantity = Quantity{quantity}}, securityId,
+                                historyStart + seconds{secondsAfterStart});
     }
 
     [[nodiscard]] std::vector<Candle> candles(const int64_t startAfterHistory, const int64_t endAfterHistory,
                                               const seconds resolution, const SecurityId securityId = SECURITY) const
     {
-        return publisher->getCandles(historyStart + seconds{startAfterHistory}, historyStart + seconds{endAfterHistory},
-                                     resolution, securityId);
+        return publisher->getCandles(securityId, historyStart + seconds{startAfterHistory},
+                                     historyStart + seconds{endAfterHistory}, resolution);
     }
 
     [[nodiscard]] Candle closedCandle(const int64_t startAfterHistory, const seconds resolution, const uint64_t open,

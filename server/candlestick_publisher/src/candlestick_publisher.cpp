@@ -22,15 +22,15 @@ void CandlestickPublisher::loop()
     const auto action = actionReceiver.receive();
 
     std::visit(overloads{[&](const TradeAction &tradeAction) {
-                             processTrade(tradeAction, time_point_cast<seconds>(action.header.timestamp),
-                                          action.header.securityId);
+                             processTrade(tradeAction, action.header.securityId,
+                                          time_point_cast<seconds>(action.header.timestamp));
                          },
                          [](const auto &) {}},
                action.body);
 }
 
-void CandlestickPublisher::processTrade(const TradeAction &tradeAction, const sys_seconds timestamp,
-                                        const SecurityId securityId)
+void CandlestickPublisher::processTrade(const TradeAction &tradeAction, const SecurityId securityId,
+                                        const sys_seconds timestamp)
 {
     auto [it, _] = state.try_emplace(securityId, 1, Candle{.start = inMemoryStart});
     auto &candles = it->second;
@@ -56,8 +56,8 @@ void CandlestickPublisher::processTrade(const TradeAction &tradeAction, const sy
     }
 }
 
-std::vector<Candle> CandlestickPublisher::getCandles(const sys_seconds start, const sys_seconds end,
-                                                     const seconds resolution, const SecurityId securityId) const
+std::vector<Candle> CandlestickPublisher::getCandles(const SecurityId securityId, const sys_seconds start,
+                                                     const sys_seconds end, const seconds resolution) const
 {
     const auto it = state.find(securityId);
     if (it == state.end())

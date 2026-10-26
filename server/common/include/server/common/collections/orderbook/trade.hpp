@@ -20,6 +20,7 @@ struct Trade
     const OrderId restingId;
     const Price price;
     const Quantity quantity;
+    const Quantity remainingRestingQuantity;
     const Side aggressorSide;
     const TradeResult result;
 };

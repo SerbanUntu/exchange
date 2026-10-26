@@ -58,14 +58,15 @@ class OrderBook
      * @param orderId The id of the incoming order
      * @param side The side of the incoming order (BUY or SELL)
      * @param price The price of the incoming order, if it is a limit order
-     * @param quantity The quantity of the incoming order
+     * @param totalQuantity The original quantity of the incoming order
+     * @param filledQuantity The quantity of the incoming order that was already filled
      * @param timeInForce The time in force of the incoming order
      * @param orderType Whether the incoming order is a limit order or a market order
      *
      * @return A list of matches performed between the incoming order and orders resting on the book, if any
      */
-    AddOrderResult addOrder(OrderId orderId, Side side, std::optional<Price> price, Quantity quantity,
-                            TimeInForce timeInForce, OrderType orderType) noexcept;
+    AddOrderResult addOrder(OrderId orderId, Side side, std::optional<Price> price, Quantity totalQuantity,
+                            Quantity filledQuantity, TimeInForce timeInForce, OrderType orderType) noexcept;
 
     /**
      * Remove a GTC limit order that is currently resting on the book.
@@ -103,5 +104,44 @@ class OrderBook
      * @param newPrice The new price of the order
      */
     AmendOrderResult amendOrder(OrderId orderId, Quantity newQuantity, Price newPrice) noexcept;
+
+    /**
+     * Getter for a read-only view of the buy book.
+     *
+     * @return A read-only view of the buy book.
+     */
+    [[nodiscard]] const OrderBookMap &getBuyBook() const noexcept;
+
+    /**
+     * Getter for a read-only view of the sell book.
+     *
+     * @return A read-only view of the sell book.
+     */
+    [[nodiscard]] const OrderBookMap &getSellBook() const noexcept;
+
+    /**
+     * Getter for a specific order in the orderbook by order id.
+     *
+     * @param orderId The id of the order to fetch.
+     * @return A copy of the order with the given order id, if
+     * an order with the given order id exists.
+     */
+    [[nodiscard]] std::optional<Order> getOrder(OrderId orderId) const noexcept;
+
+    /**
+     * Returns the number of orders in both the buy and the sell books.
+     *
+     * Time complexity is O(number of price levels). Do not use on the hot path.
+     *
+     * @return The number of orders in both the buy and the sell books.
+     */
+    [[nodiscard]] std::size_t orderCount() const noexcept;
+
+    /**
+     * Returns the size of the order lookup table.
+     *
+     * @return The size of the lookup table. Should be equal to the result of `orderCount()`.
+     */
+    [[nodiscard]] std::size_t orderLookupSize() const noexcept;
 };
 } // namespace exchange::server

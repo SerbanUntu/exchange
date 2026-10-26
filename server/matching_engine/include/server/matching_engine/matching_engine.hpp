@@ -25,7 +25,7 @@ class MatchingEngine
     /**
      * Perform one iteration of the matching engine's workflow.
      *
-     * Pops from and pushes to the shared memory queues.
+     * Pops from and pushes to once on the shared memory queues.
      */
     void loop();
 

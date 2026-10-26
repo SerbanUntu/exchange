@@ -1,15 +1,14 @@
 syntax = "proto3";
 
 import "google/protobuf/timestamp.proto";
-import "common.proto";
+import "orders.proto";
 
 package exchange.v1;
 
-enum MarketDataLevel {
-  MARKET_DATA_LEVEL_UNSPECIFIED = 0;
-  MARKET_DATA_LEVEL_L1 = 1;
-  MARKET_DATA_LEVEL_L2 = 2;
-  MARKET_DATA_LEVEL_L3 = 3;
+enum OrderStatus {
+  ORDER_STATUS_UNSPECIFIED = 0;
+  ORDER_STATUS_RESTING = 1;
+  ORDER_STATUS_FINISHED = 2;
 }
 
 message Candle {
@@ -22,14 +21,14 @@ message Candle {
   uint64 total_quantity = 7;
 }
 
-message BookOrder {
+message Trade {
   uint64 price = 1;
   uint64 quantity = 2;
-  optional uint64 order_id = 3;
+  google.protobuf.Timestamp execution_time = 3;
 }
 
 message Execution {
-  uint64 order_id = 1;
+  string order_id = 1; // UUID
   repeated Trade fill_result = 2;
 }
 
@@ -46,17 +45,86 @@ message CandleDataResponse {
 
 message OrderBookDataRequest {
   uint32 security_id = 1;
-  MarketDataLevel level = 2;
 }
 
-message OrderBookDataResponse {
-  repeated BookOrder bids = 1;
-  repeated BookOrder asks = 2;
+message L1DataResponse {
+  uint64 best_buy = 1;
+  uint64 best_sell = 2;
+  uint64 best_buy_quantity = 3;
+  uint64 best_sell_quantity = 4;
+  uint64 last_trade_price = 5;
+  uint64 last_trade_quantity = 6;
+}
+
+message L2DataRequest {
+  uint32 security_id = 1;
+  uint32 number_of_levels = 2;
+}
+
+message L2Level {
+  uint64 price = 1;
+  uint64 quantity = 2;
+}
+
+message L2DataResponse {
+  repeated L2Level buy_levels = 1;
+  repeated L2Level sell_levels = 2;
+}
+
+message OrderBookUpdate {
+  message Header {
+    string order_id = 1; // UUID
+    uint32 security_id = 2;
+    google.protobuf.Timestamp timestamp = 3;
+  }
+
+  message OrderAdded {
+    uint64 price = 1;
+    uint64 total_quantity = 2;
+    uint64 filled_quantity = 3;
+    Side side = 4;
+  }
+
+  message OrderDownsized {
+    uint64 new_quantity = 1;
+  }
+
+  message OrderRemoved {}
+
+  message OrderUpsized {
+    uint64 new_quantity = 1;
+  }
+
+  message Trade {
+    string resting_id = 1; // UUID
+    uint64 price = 2;
+    uint64 quantity = 3;
+    uint64 remaining_resting_quantity = 4;
+    Side aggressor_side = 5;
+  }
+
+  Header header = 1;
+  oneof body {
+    OrderAdded order_added = 2;
+    OrderDownsized order_downsized = 3;
+    OrderRemoved order_removed = 4;
+    OrderUpsized order_upsized = 5;
+    Trade trade = 6;
+  }
+}
+
+message OrderDataResponse {
+  string order_id = 1; // UUID
+  uint64 price = 2;
+  uint64 total_quantity = 3;
+  uint64 filled_quantity = 4;
+  Side side = 5;
+  OrderStatus order_status = 6;
 }
 
 message ExecutionDataRequest {
   optional uint32 security_id = 1;
-  optional uint64 order_id = 2;
+  optional string order_id = 2; // UUID
   optional google.protobuf.Timestamp start_time = 3;
   optional google.protobuf.Timestamp end_time = 4;
 }

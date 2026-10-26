@@ -2,6 +2,7 @@
 
 #include <iterator>
 #include <optional>
+#include <ranges>
 #include <utility>
 #include <vector>
 
@@ -9,10 +10,11 @@ namespace exchange::server
 {
 // NOLINTNEXTLINE(bugprone-exception-escape)
 OrderBook::AddOrderResult OrderBook::addOrder(OrderId orderId, const Side side, const std::optional<Price> price,
-                                              const Quantity quantity, const TimeInForce timeInForce,
-                                              const OrderType orderType) noexcept
+                                              const Quantity totalQuantity, const Quantity filledQuantity,
+                                              const TimeInForce timeInForce, const OrderType orderType) noexcept
 {
     OrderBookMap &matchingBook = side == Side::BUY ? sellBook : buyBook;
+    const Quantity quantity = totalQuantity - filledQuantity;
     Quantity remainingQuantity = quantity;
     std::vector<Trade> trades;
     if (timeInForce == TimeInForce::FOK)
@@ -56,13 +58,13 @@ OrderBook::AddOrderResult OrderBook::addOrder(OrderId orderId, const Side side, 
             const auto restingQuantity = orderIt->remainingQuantity();
             if (restingQuantity > remainingQuantity)
             {
-                trades.emplace_back(orderId, orderIt->id, currentPrice, remainingQuantity, side,
-                                    Trade::TradeResult::AGGRESSOR_FILLED);
+                trades.emplace_back(orderId, orderIt->id, currentPrice, remainingQuantity,
+                                    restingQuantity - remainingQuantity, side, Trade::TradeResult::AGGRESSOR_FILLED);
                 orderIt->filledQuantity += remainingQuantity;
                 remainingQuantity = Quantity{0};
                 break;
             }
-            trades.emplace_back(orderId, orderIt->id, currentPrice, restingQuantity, side,
+            trades.emplace_back(orderId, orderIt->id, currentPrice, restingQuantity, Quantity{0}, side,
                                 restingQuantity == remainingQuantity ? Trade::TradeResult::BOTH
                                                                      : Trade::TradeResult::RESTING_FILLED);
             remainingQuantity -= restingQuantity;
@@ -83,12 +85,12 @@ OrderBook::AddOrderResult OrderBook::addOrder(OrderId orderId, const Side side, 
         const auto restingPrice = *price;
         OrderBookMap &restingBook = side == Side::BUY ? buyBook : sellBook;
         auto &priceLevel = restingBook[restingPrice];
-        priceLevel.emplace_back(orderId, restingPrice, quantity, quantity - remainingQuantity, side);
+        priceLevel.emplace_back(orderId, restingPrice, totalQuantity, totalQuantity - remainingQuantity, side);
         orderLookup.insert_or_assign(orderId, OrderLookupValue{&priceLevel, std::prev(priceLevel.end())});
         return {.addedOrder = Order{.id = orderId,
                                     .price = restingPrice,
-                                    .totalQuantity = quantity,
-                                    .filledQuantity = quantity - remainingQuantity,
+                                    .totalQuantity = totalQuantity,
+                                    .filledQuantity = totalQuantity - remainingQuantity,
                                     .side = side},
                 .trades = trades};
     }
@@ -154,10 +156,10 @@ OrderBook::AmendOrderResult OrderBook::amendOrder(OrderId orderId, const Price n
     const auto order = *orderIt;
     removeOrder(orderId);
     return {.status = AmendOrderStatus::AMENDED,
-            .tradesAfterLosingPriority =
-                addOrder(orderId, order.side, newPrice, order.remainingQuantity(), TimeInForce::GTC, OrderType::LIMIT)};
+            .tradesAfterLosingPriority = addOrder(orderId, order.side, newPrice, order.totalQuantity,
+                                                  order.filledQuantity, TimeInForce::GTC, OrderType::LIMIT)};
 }
-OrderBook::AmendOrderResult OrderBook::amendOrder(OrderId orderId, const Quantity newQuantity,
+OrderBook::AmendOrderResult OrderBook::amendOrder(const OrderId orderId, const Quantity newQuantity,
                                                   const Price newPrice) noexcept
 {
     const auto lookupIt = orderLookup.find(orderId);
@@ -182,8 +184,47 @@ OrderBook::AmendOrderResult OrderBook::amendOrder(OrderId orderId, const Quantit
     const auto order = *orderIt;
     removeOrder(orderId);
     return {.status = AmendOrderStatus::AMENDED,
-            .tradesAfterLosingPriority = addOrder(orderId, order.side, newPrice, newQuantity - order.filledQuantity,
+            .tradesAfterLosingPriority = addOrder(orderId, order.side, newPrice, newQuantity, order.filledQuantity,
                                                   TimeInForce::GTC, OrderType::LIMIT)};
+}
+
+const OrderBookMap &OrderBook::getBuyBook() const noexcept
+{
+    return buyBook;
+}
+
+const OrderBookMap &OrderBook::getSellBook() const noexcept
+{
+    return sellBook;
+}
+
+std::optional<Order> OrderBook::getOrder(const OrderId orderId) const noexcept
+{
+    const auto it = orderLookup.find(orderId);
+    if (it == orderLookup.end())
+    {
+        return std::nullopt;
+    }
+    return *it->second.second;
+}
+
+std::size_t OrderBook::orderCount() const noexcept
+{
+    std::size_t result{};
+    for (const auto &orders : buyBook | std::views::values)
+    {
+        result += orders.size();
+    }
+    for (const auto &orders : sellBook | std::views::values)
+    {
+        result += orders.size();
+    }
+    return result;
+}
+
+std::size_t OrderBook::orderLookupSize() const noexcept
+{
+    return orderLookup.size();
 }
 
 } // namespace exchange::server

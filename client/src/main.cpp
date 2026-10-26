@@ -1,9 +1,7 @@
 #include <client/main.hpp>
 
+#include "common/proto/proto_declarations.hpp"
 #include "common/util/logging.hpp"
-
-#include <gateway.pb.h>
-#include <gateway.grpc.pb.h>
 
 #include <grpcpp/grpcpp.h>
 
@@ -12,8 +10,6 @@
 
 namespace exchange::client
 {
-using namespace v1;
-
 int main() noexcept
 {
     std::shared_ptr<spdlog::logger> LOG = nullptr;
@@ -24,7 +20,7 @@ int main() noexcept
         LOG->info("Starting the exchange client.");
 
         const auto channel = grpc::CreateChannel("localhost:8989", grpc::InsecureChannelCredentials());
-        const auto stub = Gateway::NewStub(channel);
+        const auto stub = proto::Gateway::NewStub(channel);
 
         for (auto i = 0; i < NUMBER_OF_REQUESTS; ++i)
         {
@@ -32,7 +28,7 @@ int main() noexcept
 
             google::protobuf::Empty emptyRequest;
 
-            ListSecuritiesResponse response;
+            proto::ListSecuritiesResponse response;
             grpc::ClientContext context;
 
             if (const grpc::Status status = stub->ListSecurities(&context, emptyRequest, &response); status.ok())

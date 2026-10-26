@@ -8,14 +8,15 @@ import "securities.proto";
 package exchange.v1;
 
 service Gateway {
-  rpc SubmitOrder (SubmitOrderRequest) returns (stream OrderResponse);
-  rpc GetOrder (SingleOrderRequest) returns (OrderResponse);
-  rpc WatchOrder (SingleOrderRequest) returns (stream OrderResponse);
-  rpc CancelOrder (CancelOrderRequest) returns (CancelOrderResponse);
-  rpc AmendOrder (AmendOrderRequest) returns (AmendOrderResponse);
+  rpc SubmitOrder (SubmitOrderRequest) returns (OrderAck);
+  rpc CancelOrder (SingleOrderRequest) returns (OrderAck);
+  rpc AmendOrder (AmendOrderRequest) returns (OrderAck);
 
   rpc GetCandleData (CandleDataRequest) returns (CandleDataResponse);
-  rpc GetOrderBookData (OrderBookDataRequest) returns (OrderBookDataResponse);
+  rpc GetL1Data (OrderBookDataRequest) returns (L1DataResponse);
+  rpc GetL2Data (L2DataRequest) returns (L2DataResponse);
+  rpc GetL3Data (OrderBookDataRequest) returns (stream OrderBookUpdate);
+  rpc GetOrderData (SingleOrderRequest) returns (OrderDataResponse);
   rpc GetExecutionData (ExecutionDataRequest) returns (ExecutionDataResponse);
 
   rpc ListSecurities (google.protobuf.Empty) returns (ListSecuritiesResponse);
