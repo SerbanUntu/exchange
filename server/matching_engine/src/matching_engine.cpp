@@ -46,7 +46,7 @@ std::vector<Action> MatchingEngine::processEvent(const Event &event)
             [&](const NewLimitOrderEvent &eventBody) {
                 const auto [addedOrder, trades] =
                     orderBook.addOrder(event.header.orderId, eventBody.side, eventBody.price, eventBody.quantity,
-                                       eventBody.tif, OrderType::LIMIT);
+                                       Quantity{0}, eventBody.tif, OrderType::LIMIT);
                 for (const auto &[aggressorId, restingId, price, quantity, remainingRestingQuantity, aggressorSide,
                                   tradeResult] : trades)
                 {
@@ -80,7 +80,7 @@ std::vector<Action> MatchingEngine::processEvent(const Event &event)
             [&](const NewMarketOrderEvent &eventBody) {
                 const auto [addedOrder, trades] =
                     orderBook.addOrder(event.header.orderId, eventBody.side, std::nullopt, eventBody.quantity,
-                                       TimeInForce::IOC, OrderType::MARKET);
+                                       Quantity{0}, TimeInForce::IOC, OrderType::MARKET);
                 for (const auto &[aggressorId, restingId, price, quantity, remainingRestingQuantity, aggressorSide,
                                   tradeResult] : trades)
                 {

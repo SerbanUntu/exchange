@@ -17,3 +17,5 @@ target_link_libraries(exchange-server-orderbook
         exchange::common
         exchange::server::common
 )
+
+add_subdirectory(test)

@@ -277,6 +277,25 @@ TEST_F(MatchingEngineTest, ProcessEventRepricesAnOrderAsARemovalAndAnAddition)
     EXPECT_EQ(added.totalQuantity, Quantity{5});
 }
 
+TEST_F(MatchingEngineTest, ProcessEventPreservesTheOriginalQuantitiesWhenRepricingAPartiallyFilledOrder)
+{
+    const auto orderId = makeOrderId(1);
+    restGtc(orderId, Side::BUY, 100, 10);
+    restGtc(makeOrderId(2), Side::SELL, 100, 4);
+
+    const auto actions =
+        engine.processEvent(makeEvent(orderId, AmendLimitOrderEvent{.price = Price{99}, .isPriceAmended = true}));
+
+    ASSERT_EQ(typesOf(actions), (std::vector{ORDER_REMOVED, ORDER_ADDED}));
+    const auto &added = std::get<OrderAddedAction>(actions[1].body);
+    EXPECT_EQ(added.totalQuantity, Quantity{10});
+    EXPECT_EQ(added.filledQuantity, Quantity{4});
+
+    const auto downsize = engine.processEvent(
+        makeEvent(orderId, AmendLimitOrderEvent{.quantity = Quantity{8}, .isQuantityAmended = true}));
+    EXPECT_EQ(typesOf(downsize), (std::vector{ORDER_DOWNSIZED}));
+}
+
 TEST_F(MatchingEngineTest, ProcessEventEmitsTradesWhenAnAmendedPriceCrosses)
 {
     const auto counterparty = makeOrderId(1);

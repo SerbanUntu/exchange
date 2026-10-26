@@ -2,6 +2,8 @@
 
 #include "common/util/overloads.hpp"
 
+#include <algorithm>
+
 namespace exchange::server
 {
 
@@ -20,7 +22,8 @@ void OrderbookPublisher::processAction(const Action &action)
     std::visit(overloads{
                    [&](const OrderAddedAction &actionBody) {
                        securityState.orderBook.addOrder(action.header.orderId, actionBody.side, actionBody.price,
-                                                        actionBody.totalQuantity, TimeInForce::GTC, OrderType::LIMIT);
+                                                        actionBody.totalQuantity, actionBody.filledQuantity,
+                                                        TimeInForce::GTC, OrderType::LIMIT);
                    },
                    [&](const OrderDownsizedAction &actionBody) {
                        securityState.orderBook.amendOrder(action.header.orderId, actionBody.newQuantity);
@@ -32,7 +35,16 @@ void OrderbookPublisher::processAction(const Action &action)
                    [&](const TradeAction &actionBody) {
                        securityState.lastTradePrice = actionBody.price;
                        securityState.lastTradeQuantity = actionBody.quantity;
-                       securityState.orderBook.amendOrder(actionBody.restingId, actionBody.remainingRestingQuantity);
+                       const auto maybeRestingOrder = securityState.orderBook.getOrder(actionBody.restingId);
+                       if (maybeRestingOrder != std::nullopt)
+                       {
+                           const auto restingOrder = *maybeRestingOrder;
+                           securityState.orderBook.removeOrder(restingOrder.id);
+                           securityState.orderBook.addOrder(
+                               restingOrder.id, restingOrder.side, restingOrder.price, restingOrder.totalQuantity,
+                               restingOrder.totalQuantity - actionBody.remainingRestingQuantity, TimeInForce::GTC,
+                               OrderType::LIMIT);
+                       }
                    },
                },
                action.body);
