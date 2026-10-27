@@ -1,6 +1,7 @@
 # Mutation testing
 
 - I created 15 mutants on the pre-existing source code. 10 were in the orderbook data structure, 2 in the matching engine, 2 in the candlestick publisher and 1 in the orderbook publisher.
+- The mutants are git patches in `mutation_testing/patches`, and the scripts to simplify patch writing, to run the tests on a mutant, and to run all mutants and produce a report, are directly in `mutation_testing`.
 - 3/15 mutants survived initially. A single new test for each of them killed them, but the downside is the one meant to survive was only caught by testing the orderbook implementation directly, coupling the test code with the implementation code. So leaving it to survive is better, even if it is reported as surviving.
 - All mutants created logic bugs, so none were caught by ASan/UBSan/TSan.
 - Caught mutants failed the test in around half a second.

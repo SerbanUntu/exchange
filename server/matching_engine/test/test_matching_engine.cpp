@@ -1,4 +1,7 @@
 #include "server/matching_engine/matching_engine.hpp"
+#include "diff_actions.hpp"
+#include "event_generator.hpp"
+#include "reference_matching_engine.hpp"
 
 #include "server/common/collections/ipc/action_spmc_sender.hpp"
 #include "server/common/collections/ipc/event_mpsc_queue.hpp"
@@ -18,7 +21,10 @@
 #include <array>
 #include <cstddef>
 #include <cstdint>
+#include <cstdlib>
+#include <string>
 #include <type_traits>
+#include <unordered_map>
 #include <variant>
 #include <vector>
 
@@ -52,13 +58,6 @@ constexpr std::size_t ORDER_REMOVED = actionIndex<OrderRemovedAction>;
 constexpr std::size_t ORDER_UPSIZED = actionIndex<OrderUpsizedAction>;
 constexpr std::size_t TRADE = actionIndex<TradeAction>;
 
-OrderId makeOrderId(const uint8_t seed)
-{
-    boost::uuids::uuid uuid{};
-    uuid.data[0] = seed;
-    return OrderId{uuid};
-}
-
 template <typename Body>
 Event makeEvent(const OrderId orderId, const Body &body, const SecurityId securityId = SECURITY)
 {
@@ -78,9 +77,32 @@ std::vector<std::size_t> typesOf(const std::vector<Action> &actions)
 
 MatchingEngine createMatchingEngine(SharedMemory &sharedMemory)
 {
-    sharedMemory.get().construct<std::array<std::byte, SharedMemory::mpscTotalObjectSize>>(SharedMemory::mpscName)();
-    sharedMemory.get().construct<std::array<std::byte, SharedMemory::spmcTotalObjectSize>>(SharedMemory::spmcName)();
+    [[maybe_unused]] const auto mpscBytes =
+        sharedMemory.get().construct<std::array<std::byte, SharedMemory::mpscTotalObjectSize>>(
+            SharedMemory::mpscName)();
+    [[maybe_unused]] const auto spmcBytes =
+        sharedMemory.get().construct<std::array<std::byte, SharedMemory::spmcTotalObjectSize>>(
+            SharedMemory::spmcName)();
     return MatchingEngine{EventMpscQueue{sharedMemory}, ActionSpmcSender{sharedMemory}, SECURITIES};
+}
+
+std::unordered_map<SecurityId, ReferenceOrderBook> createReferenceState()
+{
+    std::unordered_map<SecurityId, ReferenceOrderBook> state;
+    for (const auto securityId : SECURITIES)
+    {
+        state.try_emplace(securityId);
+    }
+    return state;
+}
+
+constexpr uint64_t DEFAULT_SEED_COUNT = 20000;
+constexpr int EVENTS_PER_SEED = 40;
+
+uint64_t seedCount()
+{
+    const char *value = std::getenv("DIFFERENTIAL_TEST_SEEDS");
+    return value == nullptr ? DEFAULT_SEED_COUNT : std::stoull(value);
 }
 } // namespace
 
@@ -89,11 +111,21 @@ class MatchingEngineTest : public testing::Test
   protected:
     SharedMemory sharedMemory{true, "TestMatchingEngineSharedMemory"};
     MatchingEngine engine = createMatchingEngine(sharedMemory);
+    std::unordered_map<SecurityId, ReferenceOrderBook> referenceState = createReferenceState();
+
+    std::vector<Action> processEvent(const Event &event)
+    {
+        const auto actions = engine.processEvent(event);
+        const auto diff = diffActions(referenceProcessEvent(event, referenceState), actions);
+        EXPECT_TRUE(diff.empty()) << "Matching engine diverged from the reference on " << toString(event) << "\n"
+                                  << diff;
+        return actions;
+    }
 
     std::vector<Action> restGtc(const OrderId orderId, const Side side, const uint64_t price, const uint64_t quantity,
                                 const SecurityId securityId = SECURITY)
     {
-        return engine.processEvent(
+        return processEvent(
             makeEvent(orderId,
                       NewLimitOrderEvent{
                           .side = side, .quantity = Quantity{quantity}, .price = Price{price}, .tif = TimeInForce::GTC},
@@ -106,13 +138,13 @@ TEST_F(MatchingEngineTest, ProcessEventDoesNotKeepNonGTCOrdersOnTheBook)
     const auto aggressor = makeOrderId(2);
     restGtc(makeOrderId(1), Side::SELL, 100, 2);
 
-    const auto actions = engine.processEvent(makeEvent(
+    const auto actions = processEvent(makeEvent(
         aggressor,
         NewLimitOrderEvent{.side = Side::BUY, .quantity = Quantity{5}, .price = Price{100}, .tif = TimeInForce::IOC}));
 
     EXPECT_EQ(typesOf(actions), (std::vector{TRADE, ORDER_REMOVED}));
 
-    EXPECT_TRUE(engine.processEvent(makeEvent(aggressor, CancelLimitOrderEvent{})).empty());
+    EXPECT_TRUE(processEvent(makeEvent(aggressor, CancelLimitOrderEvent{})).empty());
     EXPECT_EQ(typesOf(restGtc(makeOrderId(3), Side::SELL, 100, 3)), (std::vector{ORDER_ADDED}));
 }
 
@@ -155,7 +187,7 @@ TEST_F(MatchingEngineTest, ProcessEventDoesNotRemoveAPartiallyFilledRestingOrder
     const auto resting = makeOrderId(1);
     restGtc(resting, Side::SELL, 100, 10);
 
-    const auto actions = engine.processEvent(makeEvent(
+    const auto actions = processEvent(makeEvent(
         makeOrderId(2),
         NewLimitOrderEvent{.side = Side::BUY, .quantity = Quantity{4}, .price = Price{100}, .tif = TimeInForce::IOC}));
 
@@ -184,7 +216,7 @@ TEST_F(MatchingEngineTest, ProcessEventEmitsTradesForAMarketOrderWithoutAddingIt
     restGtc(resting, Side::SELL, 100, 5);
 
     const auto actions =
-        engine.processEvent(makeEvent(aggressor, NewMarketOrderEvent{.side = Side::BUY, .quantity = Quantity{5}}));
+        processEvent(makeEvent(aggressor, NewMarketOrderEvent{.side = Side::BUY, .quantity = Quantity{5}}));
 
     ASSERT_EQ(typesOf(actions), (std::vector{TRADE, ORDER_REMOVED}));
     EXPECT_EQ(std::get<TradeAction>(actions[0].body).price, Price{100});
@@ -195,7 +227,7 @@ TEST_F(MatchingEngineTest, ProcessEventEmitsNoActionsForAMarketOrderWithoutLiqui
 {
     const auto event = makeEvent(makeOrderId(1), NewMarketOrderEvent{.side = Side::BUY, .quantity = Quantity{5}});
 
-    EXPECT_TRUE(engine.processEvent(event).empty());
+    EXPECT_TRUE(processEvent(event).empty());
 }
 
 TEST_F(MatchingEngineTest, ProcessEventEmitsNoActionsForAnUnfillableFokOrder)
@@ -206,7 +238,7 @@ TEST_F(MatchingEngineTest, ProcessEventEmitsNoActionsForAnUnfillableFokOrder)
         makeOrderId(2),
         NewLimitOrderEvent{.side = Side::BUY, .quantity = Quantity{5}, .price = Price{100}, .tif = TimeInForce::FOK});
 
-    EXPECT_TRUE(engine.processEvent(event).empty());
+    EXPECT_TRUE(processEvent(event).empty());
 }
 
 TEST_F(MatchingEngineTest, ProcessEventDownsizesAnOrder)
@@ -214,8 +246,8 @@ TEST_F(MatchingEngineTest, ProcessEventDownsizesAnOrder)
     const auto orderId = makeOrderId(1);
     restGtc(orderId, Side::SELL, 100, 10);
 
-    const auto actions = engine.processEvent(
-        makeEvent(orderId, AmendLimitOrderEvent{.quantity = Quantity{4}, .isQuantityAmended = true}));
+    const auto actions =
+        processEvent(makeEvent(orderId, AmendLimitOrderEvent{.quantity = Quantity{4}, .isQuantityAmended = true}));
 
     ASSERT_EQ(typesOf(actions), (std::vector{ORDER_DOWNSIZED}));
     EXPECT_EQ(actions[0].header.orderId, orderId);
@@ -227,8 +259,8 @@ TEST_F(MatchingEngineTest, ProcessEventUpsizesAnOrder)
     const auto orderId = makeOrderId(1);
     restGtc(orderId, Side::SELL, 100, 10);
 
-    const auto actions = engine.processEvent(
-        makeEvent(orderId, AmendLimitOrderEvent{.quantity = Quantity{15}, .isQuantityAmended = true}));
+    const auto actions =
+        processEvent(makeEvent(orderId, AmendLimitOrderEvent{.quantity = Quantity{15}, .isQuantityAmended = true}));
 
     ASSERT_EQ(typesOf(actions), (std::vector{ORDER_UPSIZED}));
     EXPECT_EQ(actions[0].header.orderId, orderId);
@@ -241,8 +273,8 @@ TEST_F(MatchingEngineTest, ProcessEventRemovesAnOrderAmendedDownToItsFilledQuant
     restGtc(resting, Side::SELL, 100, 10);
     restGtc(makeOrderId(2), Side::BUY, 100, 4);
 
-    const auto actions = engine.processEvent(
-        makeEvent(resting, AmendLimitOrderEvent{.quantity = Quantity{4}, .isQuantityAmended = true}));
+    const auto actions =
+        processEvent(makeEvent(resting, AmendLimitOrderEvent{.quantity = Quantity{4}, .isQuantityAmended = true}));
 
     ASSERT_EQ(typesOf(actions), (std::vector{ORDER_REMOVED}));
     EXPECT_EQ(actions[0].header.orderId, resting);
@@ -252,13 +284,13 @@ TEST_F(MatchingEngineTest, ProcessEventEmitsNoActionsForARejectedAmend)
 {
     const auto unknownOrder =
         makeEvent(makeOrderId(1), AmendLimitOrderEvent{.quantity = Quantity{5}, .isQuantityAmended = true});
-    EXPECT_TRUE(engine.processEvent(unknownOrder).empty());
+    EXPECT_TRUE(processEvent(unknownOrder).empty());
 
     const auto orderId = makeOrderId(2);
     restGtc(orderId, Side::SELL, 100, 10);
     const auto unchangedQuantity =
         makeEvent(orderId, AmendLimitOrderEvent{.quantity = Quantity{10}, .isQuantityAmended = true});
-    EXPECT_TRUE(engine.processEvent(unchangedQuantity).empty());
+    EXPECT_TRUE(processEvent(unchangedQuantity).empty());
 }
 
 TEST_F(MatchingEngineTest, ProcessEventRepricesAnOrderAsARemovalAndAnAddition)
@@ -267,7 +299,7 @@ TEST_F(MatchingEngineTest, ProcessEventRepricesAnOrderAsARemovalAndAnAddition)
     restGtc(orderId, Side::BUY, 100, 5);
 
     const auto actions =
-        engine.processEvent(makeEvent(orderId, AmendLimitOrderEvent{.price = Price{99}, .isPriceAmended = true}));
+        processEvent(makeEvent(orderId, AmendLimitOrderEvent{.price = Price{99}, .isPriceAmended = true}));
 
     ASSERT_EQ(typesOf(actions), (std::vector{ORDER_REMOVED, ORDER_ADDED}));
     EXPECT_EQ(actions[0].header.orderId, orderId);
@@ -284,15 +316,15 @@ TEST_F(MatchingEngineTest, ProcessEventPreservesTheOriginalQuantitiesWhenReprici
     restGtc(makeOrderId(2), Side::SELL, 100, 4);
 
     const auto actions =
-        engine.processEvent(makeEvent(orderId, AmendLimitOrderEvent{.price = Price{99}, .isPriceAmended = true}));
+        processEvent(makeEvent(orderId, AmendLimitOrderEvent{.price = Price{99}, .isPriceAmended = true}));
 
     ASSERT_EQ(typesOf(actions), (std::vector{ORDER_REMOVED, ORDER_ADDED}));
     const auto &added = std::get<OrderAddedAction>(actions[1].body);
     EXPECT_EQ(added.totalQuantity, Quantity{10});
     EXPECT_EQ(added.filledQuantity, Quantity{4});
 
-    const auto downsize = engine.processEvent(
-        makeEvent(orderId, AmendLimitOrderEvent{.quantity = Quantity{8}, .isQuantityAmended = true}));
+    const auto downsize =
+        processEvent(makeEvent(orderId, AmendLimitOrderEvent{.quantity = Quantity{8}, .isQuantityAmended = true}));
     EXPECT_EQ(typesOf(downsize), (std::vector{ORDER_DOWNSIZED}));
 }
 
@@ -304,7 +336,7 @@ TEST_F(MatchingEngineTest, ProcessEventEmitsTradesWhenAnAmendedPriceCrosses)
     restGtc(orderId, Side::BUY, 100, 5);
 
     const auto actions =
-        engine.processEvent(makeEvent(orderId, AmendLimitOrderEvent{.price = Price{105}, .isPriceAmended = true}));
+        processEvent(makeEvent(orderId, AmendLimitOrderEvent{.price = Price{105}, .isPriceAmended = true}));
 
     ASSERT_EQ(typesOf(actions), (std::vector{ORDER_REMOVED, TRADE, ORDER_REMOVED}));
     EXPECT_EQ(actions[0].header.orderId, orderId);
@@ -320,7 +352,7 @@ TEST_F(MatchingEngineTest, ProcessEventDownsizesAnOrderWhenTheAmendRestatesTheCu
     const auto orderId = makeOrderId(1);
     restGtc(orderId, Side::SELL, 100, 10);
 
-    const auto actions = engine.processEvent(makeEvent(
+    const auto actions = processEvent(makeEvent(
         orderId, AmendLimitOrderEvent{
                      .quantity = Quantity{4}, .price = Price{100}, .isQuantityAmended = true, .isPriceAmended = true}));
 
@@ -333,7 +365,7 @@ TEST_F(MatchingEngineTest, ProcessEventCancelsARestingOrder)
     const auto orderId = makeOrderId(1);
     restGtc(orderId, Side::SELL, 100, 5);
 
-    const auto actions = engine.processEvent(makeEvent(orderId, CancelLimitOrderEvent{}));
+    const auto actions = processEvent(makeEvent(orderId, CancelLimitOrderEvent{}));
 
     ASSERT_EQ(typesOf(actions), (std::vector{ORDER_REMOVED}));
     EXPECT_EQ(actions[0].header.orderId, orderId);
@@ -344,7 +376,7 @@ TEST_F(MatchingEngineTest, ProcessEventEmitsNoActionsWhenCancellingAnUnknownOrde
 {
     const auto event = makeEvent(makeOrderId(1), CancelLimitOrderEvent{});
 
-    EXPECT_TRUE(engine.processEvent(event).empty());
+    EXPECT_TRUE(processEvent(event).empty());
 }
 
 TEST_F(MatchingEngineTest, ProcessEventKeepsAnOrderBookPerSecurity)
@@ -354,6 +386,33 @@ TEST_F(MatchingEngineTest, ProcessEventKeepsAnOrderBookPerSecurity)
     const auto actions = restGtc(makeOrderId(2), Side::BUY, 100, 5, OTHER_SECURITY);
 
     EXPECT_EQ(typesOf(actions), (std::vector{ORDER_ADDED}));
+}
+
+TEST_F(MatchingEngineTest, ProcessEventMatchesTheReferenceOnRandomEventSequences)
+{
+    const auto seeds = seedCount();
+    for (uint64_t seed = 0; seed < seeds; ++seed)
+    {
+        MatchingEngine randomEngine{EventMpscQueue{sharedMemory}, ActionSpmcSender{sharedMemory}, SECURITIES};
+        auto randomReferenceState = createReferenceState();
+        EventGenerator generator{seed, SECURITIES};
+        std::string trace;
+        for (int i = 0; i < EVENTS_PER_SEED; ++i)
+        {
+            const auto event = generator.next();
+            const auto actions = randomEngine.processEvent(event);
+            const auto diff = diffActions(referenceProcessEvent(event, randomReferenceState), actions);
+            trace += "  " + std::to_string(i) + ": " + toString(event) + "\n";
+            if (!diff.empty())
+            {
+                FAIL() << "Seed " << seed << " diverged at event " << i << "\nEvents:\n" << trace << "Diff:\n" << diff;
+            }
+            for (const auto &action : actions)
+            {
+                trace += "       -> " + toString(action) + "\n";
+            }
+        }
+    }
 }
 
 } // namespace exchange::server
