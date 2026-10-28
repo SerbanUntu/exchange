@@ -1,0 +1,13 @@
+diff --git a/server/common/src/collections/orderbook/orderbook.cpp b/server/common/src/collections/orderbook/orderbook.cpp
+index d990e22..1cd6c60 100644
+--- a/server/common/src/collections/orderbook/orderbook.cpp
++++ b/server/common/src/collections/orderbook/orderbook.cpp
+@@ -169,8 +169,6 @@ OrderBook::AmendOrderResult OrderBook::amendOrder(const OrderId orderId, const Q
+     const auto [listPtr, orderIt] = lookupIt->second;
+     if (newPrice == orderIt->price && newQuantity == orderIt->totalQuantity)
+         return {.status = AmendOrderStatus::CANNOT_AMEND, .tradesAfterLosingPriority = {}};
+-    if (newQuantity < orderIt->filledQuantity)
+-        return {.status = AmendOrderStatus::CANNOT_AMEND, .tradesAfterLosingPriority = {}};
+     if (newQuantity == orderIt->filledQuantity)
+     {
+         removeOrder(orderId);

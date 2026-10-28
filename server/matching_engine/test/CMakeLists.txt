@@ -15,5 +15,9 @@ target_link_libraries(exchange-server-matching-engine-test
         exchange::common
 )
 
+if(MSVC)
+    target_compile_definitions(exchange-server-matching-engine-test PRIVATE _CRT_SECURE_NO_WARNINGS)
+endif()
+
 include(GoogleTest)
 gtest_discover_tests(exchange-server-matching-engine-test)

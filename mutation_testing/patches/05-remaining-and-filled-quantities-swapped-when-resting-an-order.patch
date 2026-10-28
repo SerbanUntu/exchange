@@ -1,0 +1,13 @@
+diff --git a/server/common/src/collections/orderbook/orderbook.cpp b/server/common/src/collections/orderbook/orderbook.cpp
+index d990e22..460fb93 100644
+--- a/server/common/src/collections/orderbook/orderbook.cpp
++++ b/server/common/src/collections/orderbook/orderbook.cpp
+@@ -90,7 +90,7 @@ OrderBook::AddOrderResult OrderBook::addOrder(OrderId orderId, const Side side,
+         return {.addedOrder = Order{.id = orderId,
+                                     .price = restingPrice,
+                                     .totalQuantity = totalQuantity,
+-                                    .filledQuantity = totalQuantity - remainingQuantity,
++                                    .filledQuantity = remainingQuantity,
+                                     .side = side},
+                 .trades = trades};
+     }

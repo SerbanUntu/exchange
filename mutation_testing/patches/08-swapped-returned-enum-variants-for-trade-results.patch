@@ -1,0 +1,21 @@
+diff --git a/server/common/src/collections/orderbook/orderbook.cpp b/server/common/src/collections/orderbook/orderbook.cpp
+index d990e22..3fb2ca9 100644
+--- a/server/common/src/collections/orderbook/orderbook.cpp
++++ b/server/common/src/collections/orderbook/orderbook.cpp
+@@ -59,14 +59,14 @@ OrderBook::AddOrderResult OrderBook::addOrder(OrderId orderId, const Side side,
+             if (restingQuantity > remainingQuantity)
+             {
+                 trades.emplace_back(orderId, orderIt->id, currentPrice, remainingQuantity,
+-                                    restingQuantity - remainingQuantity, side, Trade::TradeResult::AGGRESSOR_FILLED);
++                                    restingQuantity - remainingQuantity, side, Trade::TradeResult::RESTING_FILLED);
+                 orderIt->filledQuantity += remainingQuantity;
+                 remainingQuantity = Quantity{0};
+                 break;
+             }
+             trades.emplace_back(orderId, orderIt->id, currentPrice, restingQuantity, Quantity{0}, side,
+                                 restingQuantity == remainingQuantity ? Trade::TradeResult::BOTH
+-                                                                     : Trade::TradeResult::RESTING_FILLED);
++                                                                     : Trade::TradeResult::AGGRESSOR_FILLED);
+             remainingQuantity -= restingQuantity;
+             orderLookup.erase(orderIt->id);
+             orderIt = orders.erase(orderIt);

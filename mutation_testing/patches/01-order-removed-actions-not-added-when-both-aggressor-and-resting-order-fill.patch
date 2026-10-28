@@ -1,0 +1,32 @@
+diff --git a/server/matching_engine/src/matching_engine.cpp b/server/matching_engine/src/matching_engine.cpp
+index 99492f4..a47453f 100644
+--- a/server/matching_engine/src/matching_engine.cpp
++++ b/server/matching_engine/src/matching_engine.cpp
+@@ -58,7 +58,7 @@ std::vector<Action> MatchingEngine::processEvent(const Event &event)
+                                                     .quantity = quantity,
+                                                     .remainingRestingQuantity = remainingRestingQuantity,
+                                                     .aggressorSide = aggressorSide});
+-                    if (tradeResult == Trade::TradeResult::RESTING_FILLED || tradeResult == Trade::TradeResult::BOTH)
++                    if (tradeResult == Trade::TradeResult::RESTING_FILLED)
+                     {
+                         result.emplace_back(Action::Header{.orderId = restingId,
+                                                            .securityId = event.header.securityId,
+@@ -92,7 +92,7 @@ std::vector<Action> MatchingEngine::processEvent(const Event &event)
+                                                     .quantity = quantity,
+                                                     .remainingRestingQuantity = remainingRestingQuantity,
+                                                     .aggressorSide = aggressorSide});
+-                    if (tradeResult == Trade::TradeResult::RESTING_FILLED || tradeResult == Trade::TradeResult::BOTH)
++                    if (tradeResult == Trade::TradeResult::RESTING_FILLED)
+                     {
+                         result.emplace_back(Action::Header{.orderId = restingId,
+                                                            .securityId = event.header.securityId,
+@@ -139,8 +139,7 @@ std::vector<Action> MatchingEngine::processEvent(const Event &event)
+                                                         .quantity = quantity,
+                                                         .remainingRestingQuantity = remainingRestingQuantity,
+                                                         .aggressorSide = aggressorSide});
+-                        if (tradeResult == Trade::TradeResult::RESTING_FILLED ||
+-                            tradeResult == Trade::TradeResult::BOTH)
++                        if (tradeResult == Trade::TradeResult::RESTING_FILLED)
+                         {
+                             result.emplace_back(Action::Header{.orderId = restingId,
+                                                                .securityId = event.header.securityId,

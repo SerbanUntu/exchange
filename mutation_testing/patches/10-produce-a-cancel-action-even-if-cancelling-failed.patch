@@ -1,0 +1,23 @@
+diff --git a/server/matching_engine/src/matching_engine.cpp b/server/matching_engine/src/matching_engine.cpp
+index 99492f4..61cebfa 100644
+--- a/server/matching_engine/src/matching_engine.cpp
++++ b/server/matching_engine/src/matching_engine.cpp
+@@ -191,13 +191,11 @@ std::vector<Action> MatchingEngine::processEvent(const Event &event)
+                 }
+             },
+             [&](const CancelLimitOrderEvent &) {
+-                if (orderBook.removeOrder(event.header.orderId))
+-                {
+-                    result.emplace_back(Action::Header{.orderId = event.header.orderId,
+-                                                       .securityId = event.header.securityId,
+-                                                       .timestamp = std::chrono::system_clock::now()},
+-                                        OrderRemovedAction{});
+-                }
++                orderBook.removeOrder(event.header.orderId);
++                result.emplace_back(Action::Header{.orderId = event.header.orderId,
++                                                   .securityId = event.header.securityId,
++                                                   .timestamp = std::chrono::system_clock::now()},
++                                    OrderRemovedAction{});
+             },
+         },
+         event.body);

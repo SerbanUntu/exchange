@@ -1,0 +1,13 @@
+diff --git a/server/candlestick_publisher/src/candlestick_publisher.cpp b/server/candlestick_publisher/src/candlestick_publisher.cpp
+index 388fa8d..97b2343 100644
+--- a/server/candlestick_publisher/src/candlestick_publisher.cpp
++++ b/server/candlestick_publisher/src/candlestick_publisher.cpp
+@@ -78,8 +78,6 @@ std::vector<Candle> CandlestickPublisher::getCandles(const SecurityId securityId
+         for (auto t = candleStart; t < candleStart + resolution; t += 1s)
+         {
+             const auto &currentCandle = candles[timestampToIndex(t)];
+-            if (!currentCandle.isClosed)
+-                return result;
+             if (currentCandle.empty())
+                 continue;
+             if (!isOpenSet)

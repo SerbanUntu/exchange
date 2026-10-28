@@ -1,0 +1,13 @@
+diff --git a/server/candlestick_publisher/src/candlestick_publisher.cpp b/server/candlestick_publisher/src/candlestick_publisher.cpp
+index 388fa8d..d8d0755 100644
+--- a/server/candlestick_publisher/src/candlestick_publisher.cpp
++++ b/server/candlestick_publisher/src/candlestick_publisher.cpp
+@@ -66,7 +66,7 @@ std::vector<Candle> CandlestickPublisher::getCandles(const SecurityId securityId
+ 
+     auto firstCandleStart = start;
+     if (firstCandleStart < inMemoryStart)
+-        firstCandleStart += (inMemoryStart - start + resolution - 1s) / resolution * resolution;
++        firstCandleStart += (inMemoryStart - start + resolution + 1s) / resolution * resolution;
+ 
+     std::vector<Candle> result;
+     for (auto candleStart = firstCandleStart; candleStart < end; candleStart += resolution)

@@ -1,0 +1,16 @@
+diff --git a/server/common/src/collections/orderbook/orderbook.cpp b/server/common/src/collections/orderbook/orderbook.cpp
+index d990e22..c5b560e 100644
+--- a/server/common/src/collections/orderbook/orderbook.cpp
++++ b/server/common/src/collections/orderbook/orderbook.cpp
+@@ -136,11 +136,6 @@ OrderBook::AmendOrderStatus OrderBook::amendOrder(OrderId orderId, const Quantit
+         orderIt->totalQuantity = newQuantity;
+         return AmendOrderStatus::AMENDED_IN_PLACE;
+     }
+-    auto order = *orderIt;
+-    listPtr->erase(orderIt);
+-    order.totalQuantity = newQuantity;
+-    auto newOrderIt = listPtr->emplace(listPtr->end(), order);
+-    orderLookup[orderId] = std::pair{listPtr, newOrderIt};
+     return AmendOrderStatus::AMENDED;
+ }
+ OrderBook::AmendOrderResult OrderBook::amendOrder(OrderId orderId, const Price newPrice) noexcept

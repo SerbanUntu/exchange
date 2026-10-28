@@ -97,6 +97,122 @@ jobs:
       - name: Test
         run: ctest --test-dir cmake-build-release/build/Release --output-on-failure
 
+  mutations:
+    needs: test
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Reduce ASLR randomness
+        if: hashFiles('mutation_testing/patches/*.patch') != '' && !env.ACT
+        run: sudo sysctl vm.mmap_rnd_bits=28
+
+      - name: Install dependencies
+        if: hashFiles('mutation_testing/patches/*.patch') != ''
+        uses: ./.github/actions/build
+        with:
+          cc: gcc
+          cxx: g++
+          build: 'false'
+
+      - name: Run mutations
+        if: hashFiles('mutation_testing/patches/*.patch') != ''
+        run: ./mutation_testing/run_all_mutations.sh
+
+      - name: Upload results
+        if: ${{ !cancelled() && hashFiles('mutation_testing/build/MUTATION_TESTING_RESULTS.md') != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: mutation-testing-results
+          path: mutation_testing/build/MUTATION_TESTING_RESULTS.md
+
+      - name: Upload logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mutation-testing-logs
+          path: mutation_testing/build/logs/
+
+  fuzz:
+    runs-on: ubuntu-latest
+    env:
+      ASAN_OPTIONS: detect_leaks=1:abort_on_error=1
+      UBSAN_OPTIONS: print_stacktrace=1:halt_on_error=1
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Reduce ASLR randomness
+        if: ${{ !env.ACT }}
+        run: sudo sysctl vm.mmap_rnd_bits=28
+
+      - name: Build
+        uses: ./.github/actions/build
+        with:
+          cc: clang
+          cxx: clang++
+          opt: 1
+          sanitizers: address,undefined
+          fuzz: 'true'
+
+      - name: Fuzz
+        run: |
+          mkdir -p fuzzing-output-corpus fuzzing-artifacts
+          cmake-build-release/build/Release/server/matching_engine/fuzzing/exchange-server-matching-engine-fuzzer \
+            -max_total_time=60 -artifact_prefix=fuzzing-artifacts/ \
+            fuzzing-output-corpus server/matching_engine/fuzzing/seeds
+
+      - name: Upload crashing inputs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fuzzing-artifacts
+          path: fuzzing-artifacts
+
+  fuzz-coverage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install gcovr and llvm-cov
+        run: |
+          pip install gcovr
+          sudo apt-get update && sudo apt-get install -y llvm
+
+      - name: Build
+        uses: ./.github/actions/build
+        with:
+          cc: clang
+          cxx: clang++
+          opt: 0
+          coverage: 'true'
+          fuzz: 'true'
+
+      - name: Reset coverage counters
+        run: find cmake-build-release -name '*.gcda' -delete
+
+      - name: Fuzz
+        run: |
+          mkdir -p fuzzing-output-corpus
+          cmake-build-release/build/Release/server/matching_engine/fuzzing/exchange-server-matching-engine-fuzzer \
+            -max_total_time=60 fuzzing-output-corpus server/matching_engine/fuzzing/seeds
+
+      - name: Generate coverage report
+        run: >
+          gcovr --config gcovr-fuzzing.cfg --gcov-executable "llvm-cov gcov"
+          --cobertura fuzz-coverage.xml
+
+      - name: Upload coverage to Codecov
+        if: ${{ !env.ACT && !cancelled() && hashFiles('fuzz-coverage.xml') != '' }}
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: fuzz-coverage.xml
+          flags: fuzzing
+          disable_search: true
+          plugins: noop
+          fail_ci_if_error: true
+
   coverage:
     runs-on: ubuntu-latest
     steps:
@@ -128,4 +244,6 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: coverage.xml
+          disable_search: true
+          plugins: noop
           fail_ci_if_error: true
