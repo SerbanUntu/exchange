@@ -18,6 +18,7 @@ include(OptimizationLevel)
 include(Sanitizers)
 include(Coverage)
 include(Asserts)
+include(Fuzzing)
 
 find_package(gRPC REQUIRED)     # gRPC::grpc++
 find_package(protobuf REQUIRED) # protobuf::protobuf

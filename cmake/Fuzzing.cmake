@@ -1,0 +1,8 @@
+option(FUZZ "Build the fuzzers with libFuzzer" OFF)
+if(FUZZ)
+    if(NOT CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+        message(FATAL_ERROR "Fuzzing is only supported with Clang")
+    endif()
+    add_compile_options(-fsanitize=fuzzer-no-link)
+    add_link_options(-fsanitize=fuzzer-no-link)
+endif()

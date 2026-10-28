@@ -5,7 +5,7 @@ PROJECT_NAME           = "exchange"
 PROJECT_BRIEF          = "Low-latency exchange in C++"
 OUTPUT_DIRECTORY       = docs
 
-INPUT                  = README.md apps client common server
+INPUT                  = README.md DIFFERENTIAL_TESTING.md FUZZING.md MUTATION_TESTING.md apps client common server
 FILE_PATTERNS          = *.cpp *.h *.hpp
 EXCLUDE_PATTERNS       = */test/*
 USE_MDFILE_AS_MAINPAGE = README.md

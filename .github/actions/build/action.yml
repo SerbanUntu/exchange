@@ -17,6 +17,9 @@ inputs:
   coverage:
     description: Whether to build with coverage instrumentation
     default: 'false'
+  fuzz:
+    description: Whether to build the fuzzers with libFuzzer
+    default: 'false'
   build:
     description: Whether to configure and build the project after installing dependencies
     default: 'true'
@@ -62,6 +65,7 @@ runs:
         -DOPTIMIZATION_LEVEL=${{ inputs.opt }}
         -DSANITIZERS=${{ inputs.sanitizers }}
         -DCOVERAGE=${{ inputs.coverage == 'true' && 'ON' || 'OFF' }}
+        -DFUZZ=${{ inputs.fuzz == 'true' && 'ON' || 'OFF' }}
         -DASSERTS=ON
 
     - name: Build
