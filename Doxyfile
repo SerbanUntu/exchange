@@ -9,6 +9,7 @@ INPUT                  = README.md DIFFERENTIAL_TESTING.md FUZZING.md MUTATION_T
 FILE_PATTERNS          = *.cpp *.h *.hpp
 EXCLUDE_PATTERNS       = */test/*
 USE_MDFILE_AS_MAINPAGE = README.md
+IMAGE_PATH             = assets
 RECURSIVE              = YES
 EXTRACT_ALL            = YES
 EXTRACT_STATIC         = NO

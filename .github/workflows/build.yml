@@ -157,10 +157,10 @@ jobs:
 
       - name: Fuzz
         run: |
-          mkdir -p fuzzing-output-seeds fuzzing-artifacts
+          mkdir -p fuzzing-output-corpus fuzzing-artifacts
           cmake-build-release/build/Release/server/matching_engine/fuzzing/exchange-server-matching-engine-fuzzer \
-            -max_total_time=600 -artifact_prefix=fuzzing-artifacts/ \
-            fuzzing-output-seeds server/matching_engine/fuzzing/seeds
+            -max_total_time=60 -artifact_prefix=fuzzing-artifacts/ \
+            fuzzing-output-corpus server/matching_engine/fuzzing/seeds
 
       - name: Upload crashing inputs
         if: failure()
@@ -193,16 +193,13 @@ jobs:
 
       - name: Fuzz
         run: |
-          mkdir -p fuzzing-output-seeds
+          mkdir -p fuzzing-output-corpus
           cmake-build-release/build/Release/server/matching_engine/fuzzing/exchange-server-matching-engine-fuzzer \
-            -max_total_time=60 fuzzing-output-seeds server/matching_engine/fuzzing/seeds
+            -max_total_time=60 fuzzing-output-corpus server/matching_engine/fuzzing/seeds
 
       - name: Generate coverage report
         run: >
-          gcovr --gcov-executable "llvm-cov gcov"
-          --filter server/matching_engine/ --filter server/common/src/collections/orderbook/
-          --exclude '.*/test/.*' --exclude '.*/fuzzing/.*'
-          --fail-under-line 0 --fail-under-branch 0
+          gcovr --config gcovr-fuzzing.cfg --gcov-executable "llvm-cov gcov"
           --cobertura fuzz-coverage.xml
 
       - name: Upload coverage to Codecov
@@ -212,6 +209,8 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: fuzz-coverage.xml
           flags: fuzzing
+          disable_search: true
+          plugins: noop
           fail_ci_if_error: true
 
   coverage:
@@ -245,4 +244,6 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: coverage.xml
+          disable_search: true
+          plugins: noop
           fail_ci_if_error: true

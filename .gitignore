@@ -17,7 +17,7 @@ target/
 conan_provider.cmake
 docs/
 CMakeUserPresets.json
-fuzzing-output-seeds/
+fuzzing-output-corpus/
 
 # Binaries
 *.exe
