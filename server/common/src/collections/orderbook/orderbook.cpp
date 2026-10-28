@@ -1,6 +1,8 @@
 #include "server/common/collections/orderbook/orderbook.hpp"
+#include "server/common/collections/orderbook/orderbook_asserts.hpp"
 
 #include <iterator>
+#include <limits>
 #include <optional>
 #include <ranges>
 #include <utility>
@@ -43,6 +45,9 @@ OrderBook::AddOrderResult OrderBook::addOrder(OrderId orderId, const Side side, 
             return {.addedOrder = std::nullopt, .trades = {}};
         }
     }
+#ifndef NDEBUG
+    std::vector<Order> restingOrdersBeforeTrades;
+#endif
     auto bookIt = matchingBook.begin();
     while (bookIt != matchingBook.end() && remainingQuantity > Quantity{0})
     {
@@ -56,6 +61,9 @@ OrderBook::AddOrderResult OrderBook::addOrder(OrderId orderId, const Side side, 
         while (orderIt != orders.end() && remainingQuantity > Quantity{0})
         {
             const auto restingQuantity = orderIt->remainingQuantity();
+#ifndef NDEBUG
+            restingOrdersBeforeTrades.push_back(*orderIt);
+#endif
             if (restingQuantity > remainingQuantity)
             {
                 trades.emplace_back(orderId, orderIt->id, currentPrice, remainingQuantity,
@@ -80,6 +88,7 @@ OrderBook::AddOrderResult OrderBook::addOrder(OrderId orderId, const Side side, 
             ++bookIt;
         }
     }
+    std::optional<Order> addedOrder;
     if (timeInForce == TimeInForce::GTC && remainingQuantity > Quantity{0} && price.has_value())
     {
         const auto restingPrice = *price;
@@ -87,14 +96,26 @@ OrderBook::AddOrderResult OrderBook::addOrder(OrderId orderId, const Side side, 
         auto &priceLevel = restingBook[restingPrice];
         priceLevel.emplace_back(orderId, restingPrice, totalQuantity, totalQuantity - remainingQuantity, side);
         orderLookup.insert_or_assign(orderId, OrderLookupValue{&priceLevel, std::prev(priceLevel.end())});
-        return {.addedOrder = Order{.id = orderId,
-                                    .price = restingPrice,
-                                    .totalQuantity = totalQuantity,
-                                    .filledQuantity = totalQuantity - remainingQuantity,
-                                    .side = side},
-                .trades = trades};
+        addedOrder.emplace(orderId, restingPrice, totalQuantity, totalQuantity - remainingQuantity, side);
     }
-    return {.addedOrder = std::nullopt, .trades = trades};
+#ifndef NDEBUG
+    std::vector<std::pair<Trade, Order>> tradeRestingPairs;
+    for (std::size_t i = 0; i < trades.size(); ++i)
+    {
+        tradeRestingPairs.emplace_back(trades[i], restingOrdersBeforeTrades[i]);
+    }
+    auto limitPrice = side == Side::BUY ? std::numeric_limits<Price>::max() : std::numeric_limits<Price>::min();
+    if (orderType == OrderType::LIMIT && price.has_value())
+        limitPrice = *price;
+    assertMatchingInvariants(Order{.id = orderId,
+                                   .price = limitPrice,
+                                   .totalQuantity = totalQuantity,
+                                   .filledQuantity = filledQuantity,
+                                   .side = side},
+                             totalQuantity - remainingQuantity, std::move(tradeRestingPairs));
+    assertOrderBookInvariants(*this);
+#endif
+    return {.addedOrder = addedOrder, .trades = trades};
 }
 
 bool OrderBook::removeOrder(OrderId orderId) noexcept
@@ -114,6 +135,9 @@ bool OrderBook::removeOrder(OrderId orderId) noexcept
         OrderBookMap &restingBook = side == Side::BUY ? buyBook : sellBook;
         restingBook.erase(price);
     }
+#ifndef NDEBUG
+    assertOrderBookInvariants(*this, true);
+#endif
     return true;
 }
 // NOLINTNEXTLINE(bugprone-exception-escape)
@@ -134,6 +158,9 @@ OrderBook::AmendOrderStatus OrderBook::amendOrder(OrderId orderId, const Quantit
     if (newQuantity < orderIt->totalQuantity)
     {
         orderIt->totalQuantity = newQuantity;
+#ifndef NDEBUG
+        assertOrderBookInvariants(*this);
+#endif
         return AmendOrderStatus::AMENDED_IN_PLACE;
     }
     auto order = *orderIt;
@@ -141,6 +168,9 @@ OrderBook::AmendOrderStatus OrderBook::amendOrder(OrderId orderId, const Quantit
     order.totalQuantity = newQuantity;
     auto newOrderIt = listPtr->emplace(listPtr->end(), order);
     orderLookup[orderId] = std::pair{listPtr, newOrderIt};
+#ifndef NDEBUG
+    assertOrderBookInvariants(*this);
+#endif
     return AmendOrderStatus::AMENDED;
 }
 OrderBook::AmendOrderResult OrderBook::amendOrder(OrderId orderId, const Price newPrice) noexcept

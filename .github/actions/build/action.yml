@@ -62,6 +62,7 @@ runs:
         -DOPTIMIZATION_LEVEL=${{ inputs.opt }}
         -DSANITIZERS=${{ inputs.sanitizers }}
         -DCOVERAGE=${{ inputs.coverage == 'true' && 'ON' || 'OFF' }}
+        -DASSERTS=ON
 
     - name: Build
       if: inputs.build == 'true'
