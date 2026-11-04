@@ -17,6 +17,7 @@ target_link_libraries(exchange-client
         exchange::common
         exchange::proto
         gRPC::grpc++
+        CLI11::CLI11
 )
 
 add_subdirectory(test)

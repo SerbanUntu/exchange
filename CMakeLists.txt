@@ -26,11 +26,7 @@ find_package(spdlog REQUIRED)   # spdlog::spdlog
 find_package(GTest REQUIRED)    # GTest::gtest_main
 find_package(Boost REQUIRED)    # boost::boost
 find_package(aeron REQUIRED)    # aeron::aeron
-find_package(TBB)               # onetbb::onetbb
-find_package(concurrentqueue)   # concurrentqueue::concurrentqueue
-find_package(CURL)              # CURL::libcurl
-find_package(nlohmann_json)     # nlohmann_json::nlohmann_json
-find_package(uwebsockets)       # uwebsockets::uwebsockets
+find_package(CLI11 REQUIRED)    # CLI11::CLI11
 
 enable_testing()
 

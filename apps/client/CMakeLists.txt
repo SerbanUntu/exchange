@@ -5,3 +5,5 @@ file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS *.cpp)
 target_sources(client PRIVATE ${SOURCES})
 
 target_link_libraries(client PRIVATE exchange::client)
+
+set_target_properties(client PROPERTIES OUTPUT_NAME exchange)

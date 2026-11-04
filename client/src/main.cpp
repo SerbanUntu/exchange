@@ -1,5 +1,6 @@
 #include <client/main.hpp>
 
+#include "client/cli_parsing.hpp"
 #include "common/proto/proto_declarations.hpp"
 #include "common/util/logging.hpp"
 
@@ -10,8 +11,25 @@
 
 namespace exchange::client
 {
-int main() noexcept
+
+int main(int argc, char **argv) noexcept
 {
+    std::string serverUrl = "localhost:8989";
+    uint32_t securityId;
+    proto::Side side;
+    uint64_t quantity;
+    uint64_t priceCents;
+    proto::TimeInForce tif;
+    std::string orderId;
+    uint32_t resolutionSeconds;
+    std::string startTime;
+    std::string endTime;
+    uint32_t numberOfLevels;
+    std::string symbol;
+
+    parseArgs(argc, argv, serverUrl, securityId, side, quantity, priceCents, tif, orderId, resolutionSeconds, startTime,
+              endTime, numberOfLevels, symbol);
+
     std::shared_ptr<spdlog::logger> LOG = nullptr;
     try
     {
@@ -19,7 +37,7 @@ int main() noexcept
         LOG = common::LogService::getLogger(common::LogProducer::CLIENT);
         LOG->info("Starting the exchange client.");
 
-        const auto channel = grpc::CreateChannel("localhost:8989", grpc::InsecureChannelCredentials());
+        const auto channel = grpc::CreateChannel(serverUrl, grpc::InsecureChannelCredentials());
         const auto stub = proto::Gateway::NewStub(channel);
 
         for (auto i = 0; i < NUMBER_OF_REQUESTS; ++i)
