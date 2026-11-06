@@ -70,3 +70,9 @@ docs:
 
 docs-pipeline:
     act -j docs -P ubuntu-latest=catthehacker/ubuntu:full-latest --secret GITHUB_TOKEN="$GITHUB_TOKEN" --env GITHUB_REPOSITORY=SerbanUntu/exchange --env GITHUB_SERVER_URL=https://github.com
+
+docker:
+    cd deploy && docker compose up -d --build
+
+docker-stop:
+    cd deploy && docker compose down
