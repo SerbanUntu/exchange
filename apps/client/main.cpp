@@ -1,6 +1,6 @@
 #include <client/main.hpp>
 
-int main()
+int main(int argc, char **argv)
 {
-    return exchange::client::main();
+    return exchange::client::main(argc, argv);
 }

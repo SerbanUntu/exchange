@@ -10,6 +10,7 @@ target_sources(exchange-client-test
 target_link_libraries(exchange-client-test
         PRIVATE
         GTest::gtest_main
+        exchange::client
 )
 
 include(GoogleTest)

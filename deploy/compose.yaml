@@ -1,0 +1,85 @@
+name: exchange
+
+x-process-build: &process-build
+  context: .
+  additional_contexts:
+    build: service:builder
+
+x-consumer: &consumer
+  ipc: service:matching-engine
+  restart: on-failure
+  depends_on:
+    matching-engine:
+      condition: service_healthy
+
+services:
+  builder:
+    profiles: [build]
+    image: exchange-builder
+    build:
+      context: ..
+      dockerfile: deploy/builder.Dockerfile
+
+  matching-engine:
+    build:
+      <<: *process-build
+      dockerfile: matching-engine.Dockerfile
+    ipc: shareable
+    restart: on-failure
+    healthcheck:
+      test: ["CMD", "test", "-e", "/dev/shm/SharedMemory"]
+      interval: 10s
+      start_period: 10s
+      start_interval: 1s
+
+  orderbook-publisher:
+    <<: *consumer
+    build:
+      <<: *process-build
+      dockerfile: orderbook-publisher.Dockerfile
+
+  candlestick-publisher:
+    <<: *consumer
+    build:
+      <<: *process-build
+      dockerfile: candlestick-publisher.Dockerfile
+
+  execution-publisher:
+    <<: *consumer
+    build:
+      <<: *process-build
+      dockerfile: execution-publisher.Dockerfile
+
+  order-manager:
+    <<: *consumer
+    build:
+      <<: *process-build
+      dockerfile: order-manager.Dockerfile
+
+  archiver-process:
+    <<: *consumer
+    build:
+      <<: *process-build
+      dockerfile: archiver-process.Dockerfile
+
+  gateway:
+    build:
+      <<: *process-build
+      dockerfile: gateway.Dockerfile
+    ipc: service:matching-engine
+    restart: on-failure
+    ports:
+      - "8989:8989"
+    depends_on:
+      matching-engine:
+        condition: service_healthy
+      orderbook-publisher:
+        condition: service_started
+      candlestick-publisher:
+        condition: service_started
+      execution-publisher:
+        condition: service_started
+      order-manager:
+        condition: service_started
+      archiver-process:
+        condition: service_started
