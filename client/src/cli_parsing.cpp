@@ -7,6 +7,7 @@
 #include <regex>
 #include <string>
 #include <unordered_map>
+#include <vector>
 
 namespace exchange::client
 {
@@ -52,14 +53,14 @@ ParseCommandResult parseCommand(int argc, char **argv, std::string &serverUrl)
     namespace opt = cli_option_names;
     namespace desc = cli_arg_descriptions;
 
-    const auto sideValidator = CLI::CheckedTransformer{
-        std::unordered_map<std::string, proto::Side>{{"buy", proto::Side::SIDE_BUY}, {"sell", proto::Side::SIDE_SELL}},
-        CLI::ignore_case};
-    const auto tifValidator = CLI::CheckedTransformer{
-        std::unordered_map<std::string, proto::TimeInForce>{{"gtc", proto::TimeInForce::TIME_IN_FORCE_GTC},
-                                                            {"ioc", proto::TimeInForce::TIME_IN_FORCE_IOC},
-                                                            {"fok", proto::TimeInForce::TIME_IN_FORCE_FOK}},
-        CLI::ignore_case};
+    const auto sideValidator = CLI::IsMember{std::vector<std::string>{"buy", "sell"}, CLI::ignore_case} &
+                               CLI::Transformer{std::unordered_map<std::string, proto::Side>{
+                                   {"buy", proto::Side::SIDE_BUY}, {"sell", proto::Side::SIDE_SELL}}};
+    const auto tifValidator = CLI::IsMember{std::vector<std::string>{"gtc", "ioc", "fok"}, CLI::ignore_case} &
+                              CLI::Transformer{std::unordered_map<std::string, proto::TimeInForce>{
+                                  {"gtc", proto::TimeInForce::TIME_IN_FORCE_GTC},
+                                  {"ioc", proto::TimeInForce::TIME_IN_FORCE_IOC},
+                                  {"fok", proto::TimeInForce::TIME_IN_FORCE_FOK}}};
     const auto timestampValidator = CLI::Validator{
         [](const std::string &value) -> std::string {
             if (google::protobuf::Timestamp timestamp; google::protobuf::util::TimeUtil::FromString(value, &timestamp))
@@ -93,7 +94,6 @@ ParseCommandResult parseCommand(int argc, char **argv, std::string &serverUrl)
     std::string symbol;
 
     CLI::App app{"CLI-based client for the stock exchange."};
-    argv = app.ensure_utf8(argv);
     app.fallthrough();
     app.require_subcommand(1);
 
