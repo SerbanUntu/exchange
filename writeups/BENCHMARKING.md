@@ -26,7 +26,7 @@ Median of 5 runs, with the lowest and highest value seen across the runs.
 - Latency is measured during a second pass over the same events on a newly instantiated engine, timing each call with `std::chrono::steady_clock`. Freeing the returned action list is counted in the throughput but not in the latency.
 - The latency figures include the cost of reading the clock, which has a median of 15 ns per pair of reads.
 
-### Workload
+### Workflow
 
 - Events are generated before timing starts by `EventGenerator` (`server/matching_engine/src/event_generator.cpp`) with a fixed seed.
 - There are 3 securities with 200 price levels each. Buy prices are shifted 50 ticks down and sell prices 50 ticks up, so 100 of the 200 levels overlap and orders landing there can cross the spread.
@@ -44,7 +44,7 @@ Median of 5 runs, with the lowest and highest value seen across the runs.
 - Compiler: GCC 13, C++20, CMake Release build (`-O3`)
 - The container is limited to CPU 2 with `--cpuset-cpus=2` and the benchmark thread is pinned to it with `pinToCore()`. Inside WSL2 this pins a virtual CPU, so the host can still move it between physical cores.
 
-### Reproducing
+### How to reproduce
 
 Make sure Docker is installed, then run this from a Unix-compatible shell (i.e., not PowerShell):
 ```shell
