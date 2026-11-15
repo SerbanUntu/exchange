@@ -1,6 +1,7 @@
 *
 !CMakeLists.txt
 !conanfile.txt
+!conan.lock
 !cmake/
 !proto/
 !common/

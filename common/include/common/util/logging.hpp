@@ -19,6 +19,7 @@ enum class LogProducer : uint8_t
     MATCHING_ENGINE,
     ORDER_MANAGER,
     ORDERBOOK_PUBLISHER,
+    BENCHMARK,
 };
 
 /**

@@ -33,6 +33,10 @@ build: _windows-require-vs2022
 test:
     ctest --test-dir cmake-build-release/build/Release --output-on-failure
 
+bench:
+    docker build -f deploy/builder.Dockerfile -t exchange-builder .
+    MSYS_NO_PATHCONV=1 docker run --rm --cpuset-cpus=2 exchange-builder /build/server/matching_engine/benchmarking/exchange-server-matching-engine-benchmark
+
 test-with-asserts build_dir="cmake-build-asserts": _windows-require-vs2022
     cmake --preset conan-release -B {{build_dir}} -DCMAKE_TOOLCHAIN_FILE="{{justfile_directory()}}/cmake-build-release/build/Release/generators/conan_toolchain.cmake" -DASSERTS=ON
     cmake --build {{build_dir}}
