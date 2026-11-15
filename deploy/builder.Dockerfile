@@ -9,10 +9,10 @@ ENV PATH=/opt/venv/bin:$PATH
 RUN pip install --no-cache-dir conan cmake && conan profile detect
 
 WORKDIR /src
-COPY conanfile.txt .
+COPY conanfile.txt conan.lock ./
 RUN conan install . --build=missing --output-folder=/conan -c tools.cmake.cmaketoolchain:generator=Ninja \
     && conan cache clean "*"
 
 COPY . .
 RUN cmake -S . -B /build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=/conan/build/Release/generators/conan_toolchain.cmake \
-    && cmake --build /build --target matching-engine orderbook-publisher candlestick-publisher execution-publisher order-manager archiver-process gateway
+    && cmake --build /build --target matching-engine exchange-server-matching-engine-benchmark orderbook-publisher candlestick-publisher execution-publisher order-manager archiver-process gateway

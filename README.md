@@ -2,20 +2,22 @@
 [![codecov](https://codecov.io/gh/SerbanUntu/exchange/graph/badge.svg)](https://codecov.io/gh/SerbanUntu/exchange)
 [![docs](https://img.shields.io/badge/docs-Doxygen-blue)](https://serbanuntu.github.io/exchange/)
 
+
 ## Contents
 
 - [Overview](#overview)
+- [Codebase](#codebase)
+  - [Architecture](#architecture)
+  - [Dependencies](#dependencies)
+  - [Codebase Structure](#codebase-structure)
 - [Verification](#verification)
   - [Mutation Testing](#mutation-testing)
   - [Differential Testing](#differential-testing)
   - [Fuzzing](#fuzzing)
   - [Running the Tests](#running-the-tests)
+  - [Benchmarking](#benchmarking)
   - [Continuous Integration](#continuous-integration)
   - [Documentation](#documentation)
-- [Codebase](#codebase)
-  - [Architecture](#architecture)
-  - [Dependencies](#dependencies)
-  - [Codebase Structure](#codebase-structure)
 - [Usage](#usage)
   - [Building](#building)
   - [Running the Server](#running-the-server)
@@ -31,83 +33,17 @@ A stock exchange written in C++20, built as a set of separate processes that com
 
 Besides unit tests, the matching logic is verified with mutation testing, differential testing and fuzzing, and every push is built and tested in 12 compiler and sanitizer configurations.
 
-The project is a work in progress. The matching engine, the order book publisher and the candlestick publisher are implemented and tested. The gateway currently answers the securities lookups, and the execution publisher, order manager and archiver are placeholders. [SPEC.md](./SPEC.md) describes the full target design.
+The project is a work in progress. The matching engine, the order book publisher and the candlestick publisher are implemented and tested. The gateway currently answers the securities lookups, and the execution publisher, order manager and archiver are placeholders. [SPEC.md](writeups/SPEC.md) describes the full target design.
 
-## Verification
+The following concerns are out of scope, otherwise I would have a running business :) High availability, fault tolerance, FIX support, network security, multicast, cloud deployment, trading schedule, risk checks, wallet management, GUI for traders, regulatory compliance.
 
-### Mutation Testing
-
-Mutation testing checks the quality of the tests themselves. Small bugs (mutants) are added to the source code on purpose, and a good test suite should fail for each of them. 15 handwritten mutants, stored as git patches, are applied one at a time and the tests are run against each. The first run caught 12 of the 15, and the surviving mutants led to new tests. See [MUTATION_TESTING.md](./MUTATION_TESTING.md) for the approach and the full results.
-
-### Differential Testing
-
-The matching engine is compared against a simple reference implementation with the same logic. Every handwritten test, and 20,000 randomly generated sequences of orders on every run, are sent to both, and the test fails if their outputs differ. One million random sequences were also run locally without a single difference. See [DIFFERENTIAL_TESTING.md](./DIFFERENTIAL_TESTING.md).
-
-### Fuzzing
-
-The matching engine is fuzzed with libFuzzer, which generates millions of order sequences and moves towards inputs that reach new code (coverage-guided fuzzing). The order book checks its own invariants with assertions, such as the best buy price always being below the best sell price, and the fuzzer reports any input that breaks one of them or triggers a memory error. A 10-minute run in CI executed almost 6 million sequences without finding an issue. See [FUZZING.md](./FUZZING.md).
-
-### Running the Tests
-
-Tests are built alongside the project and registered with CTest:
-
-```sh
-ctest --test-dir cmake-build-release/build/Release --output-on-failure
-```
-
-Or `just test`. Other variants:
-
-- `just test-with-asserts` builds into `cmake-build-asserts` with the order book invariant checks enabled, and runs the tests.
-- `just san address,undefined` and `just san-with-asserts address,undefined` build and test with sanitizers (any of `address`, `undefined` or `thread`). MSVC only supports `address`.
-- `just mutations` runs all mutants (Bash scripts).
-- The `DIFFERENTIAL_TEST_SEEDS` environment variable sets how many random sequences the differential test runs.
-- Fuzzing needs Clang on Linux. Configure with `-DFUZZ=ON -DASSERTS=ON -DSANITIZERS=address,undefined` and run `exchange-server-matching-engine-fuzzer` with an output directory and `server/matching_engine/fuzzing/seeds`. In every other build, the same target replays the seeds as part of the regular tests.
-
-### Continuous Integration
-
-Every push runs the `build` GitHub Actions workflow:
-
-- **Formatting**: `clang-format` checks every source file.
-- **Audit**: `conan audit` scans the dependencies for known vulnerabilities.
-- **Static analysis**: `clang-tidy` runs with all warnings treated as errors.
-- **Build and test matrix**: 12 configurations covering GCC and Clang, `-O0` and `-O3`, each without sanitizers, with ASan and UBSan, and with TSan. All of them run with the order book invariant checks enabled.
-- **Mutation testing**: runs all mutants and uploads the results as an artifact.
-- **Fuzzing**: fuzzes the matching engine for 60 seconds with ASan and UBSan, and uploads any crashing input.
-- **Coverage**: measures the line and branch coverage of the tests and of the fuzzer, and uploads both to [Codecov](https://codecov.io/gh/SerbanUntu/exchange).
-
-Dependencies are installed with Conan in every job, and the downloaded packages are cached between runs. The formatting and linting checks can also be run locally:
-
-#### Formatting
-
-```sh
-find client common server -type f \( -name '*.cpp' -o -name '*.h' -o -name '*.hpp' \) -print0 | xargs -0 --no-run-if-empty clang-format -i
-```
-
-#### Linting
-
-Requires the project to have been built first (see [Building](#building)), since clang-tidy reads the compile commands from the build output.
-
-```sh
-find client common server -type f \( -name '*.cpp' -o -name '*.h' -o -name '*.hpp' \) -not -path '*/test/*' -print0 | xargs -0 --no-run-if-empty clang-tidy -p cmake-build-release/build/Release
-```
-
-### Documentation
-
-The API documentation is generated from the source comments with Doxygen and published to [GitHub Pages](https://serbanuntu.github.io/exchange/) by the `docs` workflow on every push to `main`. To generate it locally:
-
-```sh
-doxygen
-```
-
-Output is written to `docs/html`.
-
-Documentation about the public gRPC API of the exchange can be found in [the dedicated README](./proto/README.md).
+All source classes, functions, and APIs were named, designed, and implemented by hand. AI was used for research, code review, writing tests, writing the Markdown files from notes, writing the CI YAML files, and code completion for repeated patterns. 
 
 ## Codebase
 
 ### Architecture
 
-Each component runs as its own process, as shown in the diagram above. The gateway receives requests from clients over gRPC, and order requests are written as events to a shared memory queue. The matching engine is the only reader of that queue. It runs on a single thread pinned to one CPU core, applies each event to the order book of its security, and broadcasts the resulting actions (trades, added, resized and removed orders) on a second shared memory queue. The publishers, the order manager and the gateway read from that broadcast queue to build their own view of the market. The queues are Aeron ring buffers placed in shared memory created with Boost.Interprocess. See [SPEC.md](./SPEC.md) for the full design.
+Each component runs as its own process, as shown in the diagram above. The gateway receives requests from clients over gRPC, and order requests are written as events to a shared memory queue. The matching engine is the only reader of that queue. It runs on a single thread pinned to one CPU core, applies each event to the order book of its security, and broadcasts the resulting actions (trades, added, resized and removed orders) on a second shared memory queue. The publishers, the order manager and the gateway read from that broadcast queue to build their own view of the market. The queues are Aeron ring buffers placed in shared memory created with Boost.Interprocess. See [SPEC.md](writeups/SPEC.md) for the full design.
 
 ### Dependencies
 
@@ -148,6 +84,7 @@ exchange/
     common/                   # Order book, shared memory queues and domain model
     gateway/                  # gRPC entry point for clients
     matching_engine/          # Matching engine
+      benchmarking/           # Throughput and latency benchmark
       fuzzing/                # Fuzz target, input encoding and seeds
       test/                   # Unit, differential and randomized tests
     orderbook_publisher/      # L1 and L2 order book data
@@ -163,11 +100,87 @@ exchange/
   conanfile.txt               # Conan dependencies
   Justfile                    # Build, test, lint and CI recipes
   Doxyfile                    # Doxygen configuration
-  SPEC.md                     # Target system design
-  MUTATION_TESTING.md
-  DIFFERENTIAL_TESTING.md
-  FUZZING.md
+  writeups/
+    SPEC.md                   # Target system design
+    MUTATION_TESTING.md
+    DIFFERENTIAL_TESTING.md
+    FUZZING.md
+    BENCHMARKING.md
 ```
+
+## Verification
+
+### Mutation Testing
+
+Mutation testing checks the quality of the tests themselves. Small bugs (mutants) are added to the source code on purpose, and a good test suite should fail for each of them. 15 handwritten mutants, stored as git patches, are applied one at a time and the tests are run against each. The first run caught 12 of the 15, and the surviving mutants led to new tests. See [MUTATION_TESTING.md](writeups/MUTATION_TESTING.md) for the approach and the full results.
+
+### Differential Testing
+
+The matching engine is compared against a simple reference implementation with the same logic. Every handwritten test, and 20,000 randomly generated sequences of orders on every run, are sent to both, and the test fails if their outputs differ. One million random sequences were also run locally without a single difference. See [DIFFERENTIAL_TESTING.md](writeups/DIFFERENTIAL_TESTING.md).
+
+### Fuzzing
+
+The matching engine is fuzzed with libFuzzer, which generates millions of order sequences and moves towards inputs that reach new code (coverage-guided fuzzing). The order book checks its own invariants with assertions, such as the best buy price always being below the best sell price, and the fuzzer reports any input that breaks one of them or triggers a memory error. A 10-minute run in CI executed almost 6 million sequences without finding an issue. See [FUZZING.md](writeups/FUZZING.md).
+
+### Running the Tests
+
+Tests are built alongside the project and registered with CTest:
+
+```sh
+ctest --test-dir cmake-build-release/build/Release --output-on-failure
+```
+
+Or `just test`. Other variants:
+
+- `just test-with-asserts` builds into `cmake-build-asserts` with the order book invariant checks enabled, and runs the tests.
+- `just san address,undefined` and `just san-with-asserts address,undefined` build and test with sanitizers (any of `address`, `undefined` or `thread`). MSVC only supports `address`.
+- `just mutations` runs all mutants (Bash scripts).
+- The `DIFFERENTIAL_TEST_SEEDS` environment variable sets how many random sequences the differential test runs.
+- Fuzzing needs Clang on Linux. Configure with `-DFUZZ=ON -DASSERTS=ON -DSANITIZERS=address,undefined` and run `exchange-server-matching-engine-fuzzer` with an output directory and `server/matching_engine/fuzzing/seeds`. In every other build, the same target replays the seeds as part of the regular tests.
+
+### Benchmarking
+
+The matching engine can process around **7.5 million** order events per second on one core, with a p99 latency of ~0.5 μs. Benchmarked in Docker on Windows (WSL), with an Ubuntu 24.04 container. There is a warmup period of 1M events, followed by a recorded run of 4M events. Throughput and latency are measured in separate passes. See [BENCHMARKING.md](writeups/BENCHMARKING.md).
+
+### Continuous Integration
+
+Every push runs the `build` GitHub Actions workflow:
+
+- **Formatting**: `clang-format` checks every source file.
+- **Audit**: `conan audit` scans the dependencies for known vulnerabilities.
+- **Static analysis**: `clang-tidy` runs with all warnings treated as errors.
+- **Build and test matrix**: 12 configurations covering GCC and Clang, `-O0` and `-O3`, each without sanitizers, with ASan and UBSan, and with TSan. All of them run with the order book invariant checks enabled.
+- **Mutation testing**: runs all mutants and uploads the results as an artifact.
+- **Fuzzing**: fuzzes the matching engine for 60 seconds with ASan and UBSan, and uploads any crashing input.
+- **Coverage**: measures the line and branch coverage of the tests and of the fuzzer, and uploads both to [Codecov](https://codecov.io/gh/SerbanUntu/exchange).
+
+Dependencies are installed with Conan in every job, and the downloaded packages are cached between runs. The formatting and linting checks can also be run locally:
+
+#### Formatting
+
+```sh
+find client common server -type f \( -name '*.cpp' -o -name '*.h' -o -name '*.hpp' \) -print0 | xargs -0 --no-run-if-empty clang-format -i
+```
+
+#### Linting
+
+Requires the project to have been built first (see [Building](#building)), since clang-tidy reads the compile commands from the build output.
+
+```sh
+find client common server -type f \( -name '*.cpp' -o -name '*.h' -o -name '*.hpp' \) -not -path '*/test/*' -print0 | xargs -0 --no-run-if-empty clang-tidy -p cmake-build-release/build/Release
+```
+
+### Documentation
+
+The API documentation is generated from the source comments with Doxygen and published to [GitHub Pages](https://serbanuntu.github.io/exchange/) by the `docs` workflow on every push to `main`. To generate it locally:
+
+```sh
+doxygen
+```
+
+Output is written to `docs/html`.
+
+Documentation about the public gRPC API of the exchange can be found in [the dedicated README](./proto/README.md).
 
 ## Usage
 

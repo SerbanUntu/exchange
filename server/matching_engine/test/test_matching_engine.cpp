@@ -1,6 +1,6 @@
 #include "server/matching_engine/matching_engine.hpp"
 #include "diff_actions.hpp"
-#include "event_generator.hpp"
+#include "server/matching_engine/event_generator.hpp"
 #include "reference_matching_engine.hpp"
 
 #include "server/common/collections/ipc/action_spmc_sender.hpp"
@@ -395,12 +395,13 @@ TEST_F(MatchingEngineTest, ProcessEventMatchesTheReferenceOnRandomEventSequences
     {
         MatchingEngine randomEngine{EventMpscQueue{sharedMemory}, ActionSpmcSender{sharedMemory}, SECURITIES};
         auto randomReferenceState = createReferenceState();
-        EventGenerator generator{seed, SECURITIES};
+        EventGenerator generator{seed, SECURITIES, EVENT_GENERATOR_CONFIG_FOR_DIFFERENTIAL_TESTING};
         std::string trace;
         for (int i = 0; i < EVENTS_PER_SEED; ++i)
         {
             const auto event = generator.next();
             const auto actions = randomEngine.processEvent(event);
+            generator.observeActions(actions);
             const auto diff = diffActions(referenceProcessEvent(event, randomReferenceState), actions);
             trace += "  " + std::to_string(i) + ": " + toString(event) + "\n";
             if (!diff.empty())

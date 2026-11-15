@@ -100,6 +100,7 @@ OrderBook::AddOrderResult OrderBook::addOrder(OrderId orderId, const Side side, 
     }
 #ifndef NDEBUG
     std::vector<std::pair<Trade, Order>> tradeRestingPairs;
+    tradeRestingPairs.reserve(trades.size());
     for (std::size_t i = 0; i < trades.size(); ++i)
     {
         tradeRestingPairs.emplace_back(trades[i], restingOrdersBeforeTrades[i]);

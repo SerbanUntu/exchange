@@ -20,5 +20,6 @@ target_link_libraries(exchange-server-matching-engine
         aeron::aeron
 )
 
+add_subdirectory(benchmarking)
 add_subdirectory(fuzzing)
 add_subdirectory(test)

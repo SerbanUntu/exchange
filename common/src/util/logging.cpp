@@ -23,6 +23,8 @@ std::string LogService::producerToString(const LogProducer producer)
         return "ord_man";
     case LogProducer::ORDERBOOK_PUBLISHER:
         return "book";
+    case LogProducer::BENCHMARK:
+        return "benchmark";
     default:
         [[unlikely]] throw std::logic_error("Invalid LogProducer value: " + std::to_string(static_cast<int>(producer)));
     }
